@@ -1,0 +1,22 @@
+{
+  "name": "cdn-test-website",
+  "version": "1.0.0",
+  "description": "Simple CDN testing website for any CDN provider",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo 'No build step needed - static files'"
+  },
+  "keywords": [
+    "cdn",
+    "testing",
+    "performance",
+    "website"
+  ],
+  "author": "Mehrdad",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
