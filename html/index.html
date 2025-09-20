@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDN Performance Testing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 { color: #333; }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .status {
+            background: #e8f5e8;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        button {
+            background: #007cba;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #005a87; }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .server-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .server-card h3 { margin-top: 0; }
+        .direct { border-color: #007cba; }
+        .cloudflare { border-color: #f48120; }
+        .vergecloud { border-color: #00d4aa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 CDN Performance Testing Dashboard</h1>
+        
+        <div class="status">
+            <strong>✅ Status:</strong> Ready for CDN comparison testing!<br>
+            <strong>🖥️ Server:</strong> Direct VPS (37.152.176.173)<br>
+            <strong>⏱️ Loaded:</strong> <span id="load-time"></span>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔧 Performance Tests</h3>
+            <button onclick="testPerformance()">Test Load Speed</button>
+            <button onclick="testHeaders()">Check Headers</button>
+            <button onclick="testFromMultipleLocations()">Test Geographic Performance</button>
+            
+            <div id="performance-result" class="result" style="display:none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 CDN Comparison</h3>
+            
+            <!-- Test All Button -->
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button onclick="testAllServers()" style="background: #28a745; font-size: 16px; padding: 12px 30px;">
+                    🚀 Test All Servers (HTTP & HTTPS)
+                </button>
+                <p style="color: #666; font-size: 14px;">Testing both HTTP and HTTPS performance</p>
+            </div>
+            
+            <div class="comparison">
+                <div class="server-card direct">
+                    <h3>🖥️ Direct Server</h3>
+                    <p><strong>HTTP:</strong> http://37.152.176.173/</p>
+                    <p><strong>HTTPS:</strong> https://37.152.176.173/</p>
+                    <button onclick="testServer('direct-http', 'http://37.152.176.173/')">Test HTTP</button>
+                    <button onclick="testServer('direct-https', 'https://37.152.176.173/')">Test HTTPS</button>
+                    <div id="direct-http-result" class="result" style="display:none;"></div>
+                    <div id="direct-https-result" class="result" style="display:none;"></div>
+                </div>
+                
+                <div class="server-card vergecloud">
+                    <h3>🌐 VergeCloud CDN</h3>
+                    <p><strong>HTTP:</strong> http://test-verge-test.shop/</p>
+                    <p><strong>HTTPS:</strong> https://test-verge-test.shop/</p>
+                    <button onclick="testServer('vergecloud-http', 'http://test-verge-test.shop/')">Test HTTP</button>
+                    <button onclick="testServer('vergecloud-https', 'https://test-verge-test.shop/')">Test HTTPS</button>
+                    <div id="vergecloud-http-result" class="result" style="display:none;"></div>
+                    <div id="vergecloud-https-result" class="result" style="display:none;"></div>
+                </div>
+            </div>
+            
+            <!-- Results Summary -->
+            <div id="comparison-summary" class="result" style="display:none; margin-top: 20px; background: #e8f4f8;">
+                <h4>📊 Performance Summary</h4>
+                <div id="summary-content"></div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📋 Setup Instructions</h3>
+            <p><strong>Next Steps:</strong></p>
+            <ol>
+                <li><strong>Baseline:</strong> Test direct server performance above</li>
+                <li><strong>VergeCloud:</strong> Go to <a href="https://vergecloud.com/" target="_blank">vergecloud.com</a> → Add domain → test-verge-test.shop</li>
+                <li><strong>Cloudflare:</strong> Go to <a href="https://www.cloudflare.com/" target="_blank">cloudflare.com</a> → Add site → test-verge-test.shop</li>
+                <li><strong>Compare:</strong> Test all three and compare results!</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Show load time
+        window.addEventListener('load', function() {
+            document.getElementById('load-time').textContent = Date.now() - performance.timing.navigationStart + 'ms';
+        });
+        
+        async function testServer(type, url) {
+            const resultDiv = document.getElementById(type + '-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '⏳ Testing...';
+            
+            const startTime = performance.now();
+            
+            try {
+                const response = await fetch(url, { mode: 'no-cors' });
+                const endTime = performance.now();
+                const responseTime = Math.round(endTime - startTime);
+                
+                resultDiv.innerHTML = `
+                    <strong>✅ Response Time:</strong> ${responseTime}ms<br>
+                    <strong>📍 Status:</strong> ${response.status || 'Connected'}<br>
+                    <strong>🕐 Tested:</strong> ${new Date().toLocaleTimeString()}
+                `;
+                resultDiv.style.background = '#e8f5e8';
+            } catch (error) {
+                const endTime = performance.now();
+                const responseTime = Math.round(endTime - startTime);
+                
+                resultDiv.innerHTML = `
+                    <strong>⚠️ Response Time:</strong> ${responseTime}ms<br>
+                    <strong>📍 Status:</strong> Cross-origin (normal for CDN testing)<br>
+                    <strong>🕐 Tested:</strong> ${new Date().toLocaleTimeString()}
+                `;
+                resultDiv.style.background = '#fff3cd';
+            }
+        }
+        
+        function testPerformance() {
+            const resultDiv = document.getElementById('performance-result');
+            resultDiv.style.display = 'block';
+            
+            const timing = performance.timing;
+            const loadTime = timing.loadEventEnd - timing.navigationStart;
+            const domReady = timing.domContentLoadedEventEnd - timing.navigationStart;
+            const firstByte = timing.responseStart - timing.navigationStart;
+            
+            resultDiv.innerHTML = `
+                <strong>📊 Performance Metrics:</strong><br>
+                • Time to First Byte: ${firstByte}ms<br>
+                • DOM Ready: ${domReady}ms<br>
+                • Full Load: ${loadTime}ms<br>
+                • Connection: ${timing.connectEnd - timing.connectStart}ms
+            `;
+            resultDiv.style.background = '#e8f5e8';
+        }
+        
+        function testHeaders() {
+            const resultDiv = document.getElementById('performance-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <strong>🔍 Current Headers (check browser DevTools):</strong><br>
+                • Server: nginx (direct server)<br>
+                • X-Served-By: Check Network tab in DevTools<br>
+                • CF-Ray: Will appear with Cloudflare<br>
+                • X-Cache: Will appear with CDN providers
+            `;
+        }
+        
+        function testFromMultipleLocations() {
+            const resultDiv = document.getElementById('performance-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <strong>🌍 Test from Multiple Locations:</strong><br>
+                • <a href="https://gtmetrix.com/" target="_blank">GTmetrix</a> - Test: http://37.152.176.173/<br>
+                • <a href="https://tools.pingdom.com/" target="_blank">Pingdom</a> - Test: http://37.152.176.173/<br>
+                • <a href="https://www.webpagetest.org/" target="_blank">WebPageTest</a> - Test: http://37.152.176.173/<br>
+                <br><strong>After CDN setup, test your domain from same tools!</strong>
+            `;
+        }
+        
+        // Test All Servers Function
+        async function testAllServers() {
+            const testButton = document.querySelector('button[onclick="testAllServers()"]');
+            testButton.innerHTML = '⏳ Testing All 4 Servers...';
+            testButton.disabled = true;
+            
+            const tests = [
+                { id: 'direct-http', url: 'http://37.152.176.173/', name: 'Direct HTTP' },
+                { id: 'direct-https', url: 'https://37.152.176.173/', name: 'Direct HTTPS' },
+                { id: 'vergecloud-http', url: 'http://test-verge-test.shop/', name: 'VergeCloud HTTP' },
+                { id: 'vergecloud-https', url: 'https://test-verge-test.shop/', name: 'VergeCloud HTTPS' }
+            ];
+            
+            const results = {};
+            let completedTests = 0;
+            
+            // Run all tests truly simultaneously with individual timing
+            const promises = tests.map(async (test) => {
+                const testStartTime = performance.now();
+                
+                try {
+                    const response = await fetch(test.url, { 
+                        mode: 'no-cors',
+                        method: 'HEAD',
+                        cache: 'no-cache'
+                    });
+                    
+                    const testEndTime = performance.now();
+                    const responseTime = Math.round(testEndTime - testStartTime);
+                    
+                    results[test.id] = { time: responseTime, status: 'success', name: test.name };
+                    
+                    // Update individual result immediately
+                    const resultDiv = document.getElementById(test.id + '-result');
+                    if (resultDiv) {
+                        resultDiv.style.display = 'block';
+                        resultDiv.innerHTML = `
+                            <strong>✅ Response Time:</strong> ${responseTime}ms<br>
+                            <strong>📍 Status:</strong> Connected (Individual timing)<br>
+                            <strong>🕐 Tested:</strong> ${new Date().toLocaleTimeString()}
+                        `;
+                        resultDiv.style.background = '#e8f5e8';
+                    }
+                    
+                } catch (error) {
+                    const testEndTime = performance.now();
+                    const responseTime = Math.round(testEndTime - testStartTime);
+                    
+                    results[test.id] = { time: responseTime, status: 'error', error: error.message, name: test.name };
+                    
+                    // Update individual result immediately
+                    const resultDiv = document.getElementById(test.id + '-result');
+                    if (resultDiv) {
+                        resultDiv.style.display = 'block';
+                        resultDiv.innerHTML = `
+                            <strong>⚠️ Response Time:</strong> ${responseTime}ms<br>
+                            <strong>📍 Status:</strong> ${error.message}<br>
+                            <strong>🕐 Tested:</strong> ${new Date().toLocaleTimeString()}
+                        `;
+                        resultDiv.style.background = '#fff3cd';
+                    }
+                }
+            });
+            
+            // Wait for all tests to complete
+            await Promise.all(promises);
+            
+            // Show comparison summary
+            showComparisonSummary(results);
+            
+            // Reset button
+            testButton.innerHTML = '🚀 Test All Servers (HTTP & HTTPS)';
+            testButton.disabled = false;
+        }
+        
+        function showComparisonSummary(results) {
+            const summaryDiv = document.getElementById('comparison-summary');
+            const contentDiv = document.getElementById('summary-content');
+            
+            // Sort results by response time
+            const sortedResults = Object.entries(results)
+                .filter(([_, result]) => result.status === 'success')
+                .sort(([_, a], [__, b]) => a.time - b.time);
+            
+            let summaryHTML = '<table style="width: 100%; border-collapse: collapse;">';
+            summaryHTML += '<tr style="background: #f0f0f0;"><th style="padding: 8px; border: 1px solid #ddd;">Rank</th><th style="padding: 8px; border: 1px solid #ddd;">Server</th><th style="padding: 8px; border: 1px solid #ddd;">Protocol</th><th style="padding: 8px; border: 1px solid #ddd;">Response Time</th><th style="padding: 8px; border: 1px solid #ddd;">Performance</th></tr>';
+            
+            sortedResults.forEach(([testId, result], index) => {
+                const [server, protocol] = testId.split('-');
+                const serverName = server === 'direct' ? '🖥️ Direct Server' : 
+                                 server === 'cloudflare' ? '☁️ Cloudflare CDN' : '🌐 VergeCloud CDN';
+                const protocolName = protocol.toUpperCase();
+                const performance = index === 0 ? '🥇 Fastest' : 
+                                  index === 1 ? '🥈 Second' : 
+                                  index === 2 ? '🥉 Third' : `#${index + 1}`;
+                
+                summaryHTML += `<tr>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${index + 1}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${serverName}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${protocolName}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;"><strong>${result.time}ms</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${performance}</td>
+                </tr>`;
+            });
+            
+            summaryHTML += '</table>';
+            
+            // Add failed tests
+            const failedTests = Object.entries(results).filter(([_, result]) => result.status === 'error');
+            if (failedTests.length > 0) {
+                summaryHTML += '<br><strong>❌ Failed Tests:</strong><br>';
+                failedTests.forEach(([testId, result]) => {
+                    const [server, protocol] = testId.split('-');
+                    const serverName = server === 'direct' ? 'Direct Server' : 
+                                     server === 'cloudflare' ? 'Cloudflare CDN' : 'VergeCloud CDN';
+                    summaryHTML += `• ${serverName} (${protocol.toUpperCase()}): ${result.error}<br>`;
+                });
+            }
+            
+            contentDiv.innerHTML = summaryHTML;
+            summaryDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
