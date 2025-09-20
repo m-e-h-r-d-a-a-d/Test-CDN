@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+spawn ./deploy.sh
+
+expect {
+    "Enter passphrase for key" {
+        send "123456\r"
+        exp_continue
+    }
+    "password:" {
+        send "123456\r"
+        exp_continue
+    }
+    eof
+}

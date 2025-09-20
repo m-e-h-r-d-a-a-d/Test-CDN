@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDN Test Website</title>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>🌐 CDN Test Website</h1>
+            <p>Test CDN performance, caching, and optimization features</p>
+            <div class="server-info">
+                <span>Domain: test-verge-test.shop</span>
+                <span>Server: 37.152.176.173</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="container">
+            <ul class="nav-list">
+                <li><a href="#home" class="nav-link active">Home</a></li>
+                <li><a href="#images" class="nav-link">Images</a></li>
+                <li><a href="#files" class="nav-link">Files</a></li>
+                <li><a href="#api" class="nav-link">API</a></li>
+                <li><a href="#performance" class="nav-link">Performance</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="container">
+            <!-- Home Section -->
+            <section id="home" class="section active">
+                <h2>Welcome to CDN Testing</h2>
+                <p>This website helps you test CDN features including caching, compression, image optimization, and performance.</p>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>🖼️ Image Testing</h3>
+                        <p>Test image optimization, WebP conversion, and responsive images</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📁 File Testing</h3>
+                        <p>Test file delivery, compression, and download acceleration</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🔧 API Testing</h3>
+                        <p>Test API caching, dynamic content, and edge computing</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>⚡ Performance</h3>
+                        <p>Test minification, compression, and HTTP/2 features</p>
+                    </div>
+                </div>
+
+                <div class="instructions">
+                    <h3>How to Use</h3>
+                    <ol>
+                        <li>Deploy this website to your VPS</li>
+                        <li>Add your domain to any CDN provider</li>
+                        <li>Configure CDN settings in the provider dashboard</li>
+                        <li>Visit different sections to test CDN features</li>
+                        <li>Use browser dev tools to monitor performance</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- Images Section -->
+            <section id="images" class="section">
+                <h2>Image Testing</h2>
+                <p>Test CDN image optimization and caching with different image sizes and formats.</p>
+                
+                <div class="test-grid">
+                    <div class="test-item">
+                        <h4>Small Images (&lt; 50KB)</h4>
+                        <img src="/assets/images/small-image-1.jpg" alt="Small test image 1" loading="lazy">
+                        <img src="/assets/images/small-image-2.jpg" alt="Small test image 2" loading="lazy">
+                        <p>Test caching and compression for small images</p>
+                    </div>
+                    
+                    <div class="test-item">
+                        <h4>Medium Images (50KB - 500KB)</h4>
+                        <img src="/assets/images/medium-image-1.jpg" alt="Medium test image 1" loading="lazy">
+                        <img src="/assets/images/medium-image-2.jpg" alt="Medium test image 2" loading="lazy">
+                        <p>Test image optimization and WebP conversion</p>
+                    </div>
+                    
+                    <div class="test-item">
+                        <h4>Large Images (&gt; 500KB)</h4>
+                        <img src="/assets/images/large-image-1.jpg" alt="Large test image 1" loading="lazy">
+                        <img src="/assets/images/large-image-2.jpg" alt="Large test image 2" loading="lazy">
+                        <p>Test performance with large images</p>
+                    </div>
+                </div>
+
+                <div class="responsive-test">
+                    <h4>Responsive Image Test</h4>
+                    <img src="/assets/images/responsive-large.jpg"
+                         srcset="/assets/images/responsive-small.jpg 400w,
+                                 /assets/images/responsive-medium.jpg 800w,
+                                 /assets/images/responsive-large.jpg 1200w"
+                         sizes="(max-width: 400px) 400px, (max-width: 800px) 800px, 1200px"
+                         alt="Responsive test image">
+                    <p>This image loads different sizes based on screen width</p>
+                </div>
+            </section>
+
+            <!-- Files Section -->
+            <section id="files" class="section">
+                <h2>File Download Testing</h2>
+                <p>Test CDN file delivery and download acceleration with various file types and sizes.</p>
+                
+                <div class="download-grid">
+                    <div class="download-item">
+                        <h4>📄 Documents</h4>
+                        <ul>
+                            <li><a href="/assets/files/small-document.pdf" download>Small PDF (100KB)</a></li>
+                            <li><a href="/assets/files/medium-document.pdf" download>Medium PDF (1MB)</a></li>
+                            <li><a href="/assets/files/large-document.pdf" download>Large PDF (5MB)</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="download-item">
+                        <h4>🗜️ Archives</h4>
+                        <ul>
+                            <li><a href="/assets/files/small-archive.zip" download>Small ZIP (500KB)</a></li>
+                            <li><a href="/assets/files/medium-archive.zip" download>Medium ZIP (5MB)</a></li>
+                            <li><a href="/assets/files/large-archive.zip" download>Large ZIP (25MB)</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="download-item">
+                        <h4>🎥 Media Files</h4>
+                        <ul>
+                            <li><a href="/assets/videos/small-video.mp4" download>Small Video (2MB)</a></li>
+                            <li><a href="/assets/videos/medium-video.mp4" download>Medium Video (10MB)</a></li>
+                            <li><a href="/assets/videos/large-video.mp4" download>Large Video (50MB)</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- API Section -->
+            <section id="api" class="section">
+                <h2>API Testing</h2>
+                <p>Test CDN API caching and dynamic content handling.</p>
+                
+                <div class="api-tests">
+                    <div class="api-test">
+                        <h4>Cacheable API Response</h4>
+                        <button onclick="testAPI('/api/test/json-small')">Test Small JSON (Cached 1h)</button>
+                        <button onclick="testAPI('/api/test/json-large')">Test Large JSON (Cached 1h)</button>
+                        <button onclick="testAPI('/api/test/cached')">Test Cached Response (24h)</button>
+                    </div>
+                    
+                    <div class="api-test">
+                        <h4>Dynamic Content</h4>
+                        <button onclick="testAPI('/api/test/dynamic')">Test Dynamic Response (No Cache)</button>
+                    </div>
+                </div>
+                
+                <div id="api-results" class="api-results">
+                    <h4>Results</h4>
+                    <pre id="api-output">Click buttons above to test API endpoints</pre>
+                </div>
+            </section>
+
+            <!-- Performance Section -->
+            <section id="performance" class="section">
+                <h2>Performance Testing</h2>
+                <p>Test CDN performance optimization features.</p>
+                
+                <div class="performance-tests">
+                    <div class="perf-test">
+                        <h4>CSS & JS Loading</h4>
+                        <p>Large CSS and JS files to test minification and compression:</p>
+                        <link rel="stylesheet" href="/assets/css/large-styles.css">
+                        <script src="/assets/js/large-script.js"></script>
+                        <p>Check Network tab to see compression headers</p>
+                    </div>
+                    
+                    <div class="perf-test">
+                        <h4>Multiple Small Resources</h4>
+                        <button onclick="loadMultipleResources()">Load 20 Small Images</button>
+                        <div id="small-images-container"></div>
+                        <p>Tests HTTP/2 multiplexing and connection handling</p>
+                    </div>
+                    
+                    <div class="perf-test">
+                        <h4>Page Load Metrics</h4>
+                        <button onclick="showPageMetrics()">Show Performance Metrics</button>
+                        <div id="metrics-output"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 CDN Test Website | Test your CDN performance and features</p>
+            <p>Use browser developer tools to monitor CDN headers and performance</p>
+        </div>
+    </footer>
+
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>
