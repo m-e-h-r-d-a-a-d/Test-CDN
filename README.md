@@ -51,7 +51,7 @@ CDN-Test-Website/
    ```
 
 2. **Configure DNS:**
-   - Point `test-verge-test.shop` to your VPS IP (`37.152.176.173`)
+   - Point `test-verge-test.shop` to your VPS IP (`64.227.143.158`)
 
 3. **Setup CDN:**
    - Add domain to your CDN provider
@@ -178,13 +178,13 @@ Edit `public/assets/css/styles.css` for visual customizations.
 ### Server Management
 ```bash
 # Check status
-ssh ubuntu@37.152.176.173 'pm2 status'
+ssh ubuntu@64.227.143.158 'pm2 status'
 
 # View logs
-ssh ubuntu@37.152.176.173 'pm2 logs cdn-test-website'
+ssh ubuntu@64.227.143.158 'pm2 logs cdn-test-website'
 
 # Restart application
-ssh ubuntu@37.152.176.173 'pm2 restart cdn-test-website'
+ssh ubuntu@64.227.143.158 'pm2 restart cdn-test-website'
 
 # Update deployment
 ./deploy.sh
@@ -193,13 +193,13 @@ ssh ubuntu@37.152.176.173 'pm2 restart cdn-test-website'
 ### Nginx Management
 ```bash
 # Check nginx status
-ssh ubuntu@37.152.176.173 'sudo systemctl status nginx'
+ssh ubuntu@64.227.143.158 'sudo systemctl status nginx'
 
 # Test nginx config
-ssh ubuntu@37.152.176.173 'sudo nginx -t'
+ssh ubuntu@64.227.143.158 'sudo nginx -t'
 
 # Restart nginx
-ssh ubuntu@37.152.176.173 'sudo systemctl restart nginx'
+ssh ubuntu@64.227.143.158 'sudo systemctl restart nginx'
 ```
 
 ## 🔍 Troubleshooting
@@ -230,7 +230,7 @@ nslookup test-verge-test.shop
 curl -I http://test-verge-test.shop
 
 # Check server logs
-ssh ubuntu@37.152.176.173 'pm2 logs cdn-test-website --lines 50'
+ssh ubuntu@64.227.143.158 'pm2 logs cdn-test-website --lines 50'
 ```
 
 ## 📝 License
