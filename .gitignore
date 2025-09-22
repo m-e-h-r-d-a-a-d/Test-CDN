@@ -1,0 +1,5 @@
+# SSL certificates and private keys
+nginx/ssl/vergecloud.crt
+nginx/ssl/vergecloud.key
+nginx/ssl/*.crt
+nginx/ssl/*.key
