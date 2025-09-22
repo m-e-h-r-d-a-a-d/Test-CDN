@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual CDN Verification Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-5xl mx-auto p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-semibold text-gray-800">Manual CDN Verification Guide</h1>
+            <a href="../index.html" class="text-blue-600 hover:underline">← Back to Dashboard</a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <p class="text-gray-700">Follow these steps to verify your CDN setup (VergeCloud and Anonymous CDN) end‑to‑end. Keep an SSH session open to tail nginx logs on the origin while running the commands below.</p>
+        </div>
+
+        <div class="space-y-6">
+            <section class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-2">1) Tail nginx logs on origin</h2>
+                <p class="text-gray-700 mb-3">Run this to observe incoming requests while you test:</p>
+                <pre class="bg-gray-900 text-green-200 text-sm p-4 rounded overflow-x-auto"><code>ssh ubuntu@64.227.143.158 'docker logs -f --tail=200 cdn-test-nginx'</code></pre>
+            </section>
+
+            <section class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-2">2) DNS sanity</h2>
+                <p class="text-gray-700 mb-3">Both resolvers should return CDN POP addresses, not your origin IP.</p>
+                <pre class="bg-gray-900 text-green-200 text-sm p-4 rounded overflow-x-auto"><code>nslookup test-verge-test.shop 1.1.1.1
+nslookup test-verge-test.shop 8.8.8.8
+nslookup test20250316.ir 1.1.1.1
+nslookup test20250316.ir 8.8.8.8</code></pre>
+            </section>
+
+            <section class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-2">3) Origin reachability with Host override</h2>
+                <p class="text-gray-700 mb-3">Confirm origin serves content when addressed by the CDN Host header (HTTP and HTTPS with self‑signed cert).</p>
+                <pre class="bg-gray-900 text-green-200 text-sm p-4 rounded overflow-x-auto"><code>curl -I -H "Host: test-verge-test.shop" http://64.227.143.158/
+curl -skI -H "Host: test-verge-test.shop" https://64.227.143.158/
+
+curl -I -H "Host: test20250316.ir" http://64.227.143.158/
+curl -skI -H "Host: test20250316.ir" https://64.227.143.158/</code></pre>
+                <p class="text-gray-700 mt-3">Expect <span class="font-mono">200</span>, and origin headers like <span class="font-mono">X-Served-By</span>, <span class="font-mono">Cache-Control</span>, CORS headers. Check the nginx logs for matching requests.</p>
+            </section>
+
+            <section class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-2">4) CDN reachability + SSL</h2>
+                <p class="text-gray-700 mb-3">Hit the CDN endpoints directly:</p>
+                <pre class="bg-gray-900 text-green-200 text-sm p-4 rounded overflow-x-auto"><code>curl -I http://test-verge-test.shop/
+curl -I https://test-verge-test.shop/
+
+curl -I http://test20250316.ir/
+curl -I https://test20250316.ir/</code></pre>
+                <p class="text-gray-700 mt-3">If HTTPS fails and the origin log shows nothing, use Flexible SSL (origin http:80). If requests reach origin but fail, keep Flexible or use Full (not Strict) unless you install a proper origin cert for the hostname.</p>
+            </section>
+
+            <section class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-2">5) Response headers</h2>
+                <pre class="bg-gray-900 text-green-200 text-sm p-4 rounded overflow-x-auto"><code>curl -sI https://test-verge-test.shop/ | tr -d '\r'
+curl -sI https://test20250316.ir/   | tr -d '\r'</code></pre>
+                <p class="text-gray-700 mt-3">Look for CDN indicators (<span class="font-mono">Via</span>, vendor headers), and origin headers (<span class="font-mono">X-Served-By</span>, <span class="font-mono">X-Origin-Host</span>).</p>
+            </section>
+
+            <section class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-2">6) Quick timings</h2>
+                <pre class="bg-gray-900 text-green-200 text-sm p-4 rounded overflow-x-auto"><code>curl -o /dev/null -s -w "ttfb: %{time_starttransfer}s total: %{time_total}s\n" https://test-verge-test.shop/
+curl -o /dev/null -s -w "ttfb: %{time_starttransfer}s total: %{time_total}s\n" https://64.227.143.158/</code></pre>
+            </section>
+        </div>
+    </div>
+</body>
+</html>
+
+

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated CDN Test Runner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-5xl mx-auto p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-semibold text-gray-800">Automated CDN Test Runner</h1>
+            <a href="../index.html" class="text-blue-600 hover:underline">← Back to Dashboard</a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <label class="block">
+                    <span class="text-gray-700">Interval (ms)</span>
+                    <input id="interval" type="number" value="5000" min="100" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">Rounds</span>
+                    <input id="rounds" type="number" value="5" min="1" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">Method</span>
+                    <select id="method" class="mt-1 block w-full rounded border-gray-300">
+                        <option>HEAD</option>
+                        <option>GET</option>
+                    </select>
+                </label>
+            </div>
+            <div class="mt-4 flex gap-3">
+                <button id="startBtn" class="px-4 py-2 bg-blue-600 text-white rounded">Start</button>
+                <button id="stopBtn" class="px-4 py-2 bg-red-600 text-white rounded">Stop</button>
+                <button id="downloadBtn" class="px-4 py-2 bg-gray-700 text-white rounded">Download CSV</button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-3">Targets</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://64.227.143.158/" checked><span>Direct HTTP</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://64.227.143.158/" checked><span>Direct HTTPS</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test-verge-test.shop/" checked><span>VergeCloud HTTP</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test-verge-test.shop/" checked><span>VergeCloud HTTPS</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test20250316.ir/" checked><span>Anonymous HTTP</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test20250316.ir/" checked><span>Anonymous HTTPS</span></label>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-3">Progress</h2>
+            <div id="status" class="text-gray-700">Idle</div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold mb-3">Results</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="px-3 py-2 text-left">Round</th>
+                            <th class="px-3 py-2 text-left">Target</th>
+                            <th class="px-3 py-2 text-left">Method</th>
+                            <th class="px-3 py-2 text-left">Time (ms)</th>
+                            <th class="px-3 py-2 text-left">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timer = null;
+        let round = 0;
+        const rows = [];
+
+        function nowMs() { return Math.round(performance.now()); }
+
+        async function runOnce() {
+            const method = document.getElementById('method').value;
+            const urls = Array.from(document.querySelectorAll('.target:checked')).map(x => x.value);
+            const thisRound = ++round;
+            document.getElementById('status').textContent = `Running round ${thisRound}...`;
+
+            const startedAt = nowMs();
+            await Promise.all(urls.map(async (url) => {
+                const t0 = nowMs();
+                try {
+                    const res = await fetch(url, { mode: 'no-cors', method, cache: 'no-cache' });
+                    const t1 = nowMs();
+                    appendRow(thisRound, url, method, t1 - t0, 'OK');
+                } catch (e) {
+                    const t1 = nowMs();
+                    appendRow(thisRound, url, method, t1 - t0, 'CROSS-ORIGIN');
+                }
+            }));
+            const endedAt = nowMs();
+            document.getElementById('status').textContent = `Round ${thisRound} done in ${endedAt - startedAt} ms`;
+        }
+
+        function appendRow(roundNo, url, method, ms, status) {
+            rows.push({ round: roundNo, url, method, ms, status });
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td class="px-3 py-2">${roundNo}</td>
+                            <td class="px-3 py-2">${url}</td>
+                            <td class="px-3 py-2">${method}</td>
+                            <td class="px-3 py-2">${ms}</td>
+                            <td class="px-3 py-2">${status}</td>`;
+            document.getElementById('tbody').appendChild(tr);
+        }
+
+        function start() {
+            if (timer) return;
+            round = 0;
+            document.getElementById('tbody').innerHTML = '';
+            rows.length = 0;
+            const interval = parseInt(document.getElementById('interval').value, 10) || 5000;
+            const totalRounds = parseInt(document.getElementById('rounds').value, 10) || 5;
+            let done = 0;
+            runOnce().then(() => { done++; });
+            timer = setInterval(async () => {
+                if (done >= totalRounds) { stop(); return; }
+                await runOnce();
+                done++;
+            }, interval);
+            document.getElementById('status').textContent = 'Started';
+        }
+
+        function stop() {
+            if (timer) clearInterval(timer);
+            timer = null;
+            document.getElementById('status').textContent = 'Stopped';
+        }
+
+        function downloadCsv() {
+            const header = 'round,url,method,time_ms,status\n';
+            const body = rows.map(r => `${r.round},${r.url},${r.method},${r.ms},${r.status}`).join('\n');
+            const blob = new Blob([header + body], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cdn-test-results.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        document.getElementById('startBtn').addEventListener('click', start);
+        document.getElementById('stopBtn').addEventListener('click', stop);
+        document.getElementById('downloadBtn').addEventListener('click', downloadCsv);
+    </script>
+</body>
+</html>
+
+
