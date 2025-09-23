@@ -80,7 +80,7 @@
         
         <div class="status">
             <strong>✅ Status:</strong> Ready for CDN comparison testing!<br>
-            <strong>🖥️ Server:</strong> Direct VPS (64.227.143.158)<br>
+            <strong>🖥️ Server:</strong> Direct VPS (142.93.208.111)<br>
             <strong>⏱️ Loaded:</strong> <span id="load-time"></span>
         </div>
         
@@ -107,10 +107,10 @@
             <div class="comparison">
                 <div class="server-card direct">
                     <h3>🖥️ Direct Server</h3>
-                    <p><strong>HTTP:</strong> http://64.227.143.158/</p>
-                    <p><strong>HTTPS:</strong> https://64.227.143.158/</p>
-                    <button onclick="testServer('direct-http', 'http://64.227.143.158/')">Test HTTP</button>
-                    <button onclick="testServer('direct-https', 'https://64.227.143.158/')">Test HTTPS</button>
+                    <p><strong>HTTP:</strong> http://142.93.208.111/</p>
+                    <p><strong>HTTPS:</strong> https://142.93.208.111/</p>
+                    <button onclick="testServer('direct-http', 'http://142.93.208.111/')">Test HTTP</button>
+                    <button onclick="testServer('direct-https', 'https://142.93.208.111/')">Test HTTPS</button>
                     <div id="direct-http-result" class="result" style="display:none;"></div>
                     <div id="direct-https-result" class="result" style="display:none;"></div>
                 </div>
@@ -228,9 +228,9 @@
             resultDiv.style.display = 'block';
             resultDiv.innerHTML = `
                 <strong>🌍 Test from Multiple Locations:</strong><br>
-                • <a href="https://gtmetrix.com/" target="_blank">GTmetrix</a> - Test: http://64.227.143.158/<br>
-                • <a href="https://tools.pingdom.com/" target="_blank">Pingdom</a> - Test: http://64.227.143.158/<br>
-                • <a href="https://www.webpagetest.org/" target="_blank">WebPageTest</a> - Test: http://64.227.143.158/<br>
+                • <a href="https://gtmetrix.com/" target="_blank">GTmetrix</a> - Test: http://142.93.208.111/<br>
+                • <a href="https://tools.pingdom.com/" target="_blank">Pingdom</a> - Test: http://142.93.208.111/<br>
+                • <a href="https://www.webpagetest.org/" target="_blank">WebPageTest</a> - Test: http://142.93.208.111/<br>
                 <br><strong>After CDN setup, test your domain from same tools!</strong>
             `;
         }
@@ -242,8 +242,8 @@
             testButton.disabled = true;
             
             const tests = [
-                { id: 'direct-http', url: 'http://64.227.143.158/', name: 'Direct HTTP' },
-                { id: 'direct-https', url: 'https://64.227.143.158/', name: 'Direct HTTPS' },
+                { id: 'direct-http', url: 'http://142.93.208.111/', name: 'Direct HTTP' },
+                { id: 'direct-https', url: 'https://142.93.208.111/', name: 'Direct HTTPS' },
                 { id: 'vergecloud-http', url: 'http://test-verge-test.shop/', name: 'VergeCloud HTTP' },
                 { id: 'vergecloud-https', url: 'https://test-verge-test.shop/', name: 'VergeCloud HTTPS' },
                 { id: 'anonymous-http', url: 'http://test20250316.ir/', name: 'Anonymous CDN HTTP' },
