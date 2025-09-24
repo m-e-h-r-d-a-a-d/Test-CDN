@@ -31,22 +31,23 @@
                     </select>
                 </label>
             </div>
-            <div class="mt-4 flex gap-3">
+            <div class="mt-4 flex gap-3 flex-wrap">
                 <button id="startBtn" class="px-4 py-2 bg-blue-600 text-white rounded">Start</button>
                 <button id="stopBtn" class="px-4 py-2 bg-red-600 text-white rounded">Stop</button>
                 <button id="downloadBtn" class="px-4 py-2 bg-gray-700 text-white rounded">Download CSV</button>
+                <button id="probeBtn" class="px-4 py-2 bg-emerald-700 text-white rounded">Run Deep Probe</button>
             </div>
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h2 class="text-lg font-semibold mb-3">Targets</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://142.93.208.111/" checked><span>Direct HTTP</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://142.93.208.111/" checked><span>Direct HTTPS</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test-verge-test.shop/" checked><span>VergeCloud HTTP</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test-verge-test.shop/" checked><span>VergeCloud HTTPS</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test20250316.ir/" checked><span>Anonymous HTTP</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test20250316.ir/" checked><span>Anonymous HTTPS</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://142.93.208.111/probe.txt" checked><span>Direct HTTP</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://142.93.208.111/probe.txt" checked><span>Direct HTTPS</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test-verge-test.shop/probe.txt" checked><span>VergeCloud HTTP</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test-verge-test.shop/probe.txt" checked><span>VergeCloud HTTPS</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test20250316.ir/probe.txt" checked><span>Anonymous HTTP</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test20250316.ir/probe.txt" checked><span>Anonymous HTTPS</span></label>
             </div>
         </div>
 
@@ -66,6 +67,9 @@
                             <th class="px-3 py-2 text-left">Method</th>
                             <th class="px-3 py-2 text-left">Time (ms)</th>
                             <th class="px-3 py-2 text-left">Status</th>
+                            <th class="px-3 py-2 text-left">Cache</th>
+                            <th class="px-3 py-2 text-left">Encoding</th>
+                            <th class="px-3 py-2 text-left">Protocol</th>
                         </tr>
                     </thead>
                     <tbody id="tbody"></tbody>
@@ -103,14 +107,17 @@
             document.getElementById('status').textContent = `Round ${thisRound} done in ${endedAt - startedAt} ms`;
         }
 
-        function appendRow(roundNo, url, method, ms, status) {
-            rows.push({ round: roundNo, url, method, ms, status });
+        function appendRow(roundNo, url, method, ms, status, extras = {}) {
+            rows.push({ round: roundNo, url, method, ms, status, ...extras });
             const tr = document.createElement('tr');
             tr.innerHTML = `<td class="px-3 py-2">${roundNo}</td>
                             <td class="px-3 py-2">${url}</td>
                             <td class="px-3 py-2">${method}</td>
                             <td class="px-3 py-2">${ms}</td>
-                            <td class="px-3 py-2">${status}</td>`;
+                            <td class="px-3 py-2">${status}</td>
+                            <td class="px-3 py-2">${extras.cache || ''}</td>
+                            <td class="px-3 py-2">${extras.encoding || ''}</td>
+                            <td class="px-3 py-2">${extras.protocol || ''}</td>`;
             document.getElementById('tbody').appendChild(tr);
         }
 
@@ -138,8 +145,8 @@
         }
 
         function downloadCsv() {
-            const header = 'round,url,method,time_ms,status\n';
-            const body = rows.map(r => `${r.round},${r.url},${r.method},${r.ms},${r.status}`).join('\n');
+            const header = 'round,url,method,time_ms,status,cache,encoding,protocol\n';
+            const body = rows.map(r => `${r.round},${r.url},${r.method},${r.ms},${r.status},${r.cache || ''},${r.encoding || ''},${r.protocol || ''}`).join('\n');
             const blob = new Blob([header + body], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -148,6 +155,32 @@
             a.click();
             URL.revokeObjectURL(url);
         }
+
+        // Deep probe using Resource Timing (nextHopProtocol) and exposed headers
+        async function deepProbe() {
+            const urls = Array.from(document.querySelectorAll('.target:checked')).map(x => x.value);
+            const thisRound = ++round;
+            document.getElementById('status').textContent = `Deep probe ${thisRound}...`;
+            await Promise.all(urls.map(async (url) => {
+                const t0 = nowMs();
+                let cache = '', encoding = '', protocol = '';
+                try {
+                    await fetch(url, { mode: 'no-cors', method: 'GET', cache: 'reload' });
+                    const entries = performance.getEntriesByName(url);
+                    if (entries && entries.length > 0) {
+                        protocol = entries[entries.length - 1].nextHopProtocol || '';
+                    }
+                    const t1 = nowMs();
+                    appendRow(thisRound, url, 'GET', t1 - t0, 'OK', { cache, encoding, protocol });
+                } catch (e) {
+                    const t1 = nowMs();
+                    appendRow(thisRound, url, 'GET', t1 - t0, 'CROSS-ORIGIN', { cache, encoding, protocol });
+                }
+            }));
+            document.getElementById('status').textContent = `Deep probe ${thisRound} done`;
+        }
+
+        document.getElementById('probeBtn').addEventListener('click', deepProbe);
 
         document.getElementById('startBtn').addEventListener('click', start);
         document.getElementById('stopBtn').addEventListener('click', stop);
