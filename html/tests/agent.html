@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol Agent</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+    <meta http-equiv="Pragma" content="no-cache"/>
+    <meta http-equiv="Expires" content="0"/>
+    <style>body{margin:0;font:12px sans-serif;color:#555}</style>
+    <div>Protocol Agent</div>
+    <script>
+    (function(){
+      async function waitForResourceTiming(targetUrl, timeoutMs){
+        const deadline = Date.now() + (timeoutMs||800);
+        return new Promise((resolve)=>{
+          (function check(){
+            const es = performance.getEntriesByType('resource');
+            for(let i=es.length-1;i>=0;i--){
+              const n = es[i].name;
+              if (n === targetUrl || n.startsWith(targetUrl)) { resolve(es[i]); return; }
+            }
+            if (Date.now()>deadline) { resolve(null); return; }
+            setTimeout(check,50);
+          })();
+        });
+      }
+      async function probeOnce(url){
+        try{
+          performance.clearResourceTimings();
+          const bust = url + (url.includes('?')?'&':'?') + 'rt=' + Date.now();
+          await fetch(bust, { mode:'no-cors', cache:'no-cache' });
+          const entry = await waitForResourceTiming(bust, 900);
+          const proto = entry && entry.nextHopProtocol || '';
+          parent.postMessage({ type:'cdn-proto', url, protocol: proto }, '*');
+        }catch(e){
+          parent.postMessage({ type:'cdn-proto', url, protocol: '', error: String(e) }, '*');
+        }
+      }
+      const p = new URLSearchParams(location.search);
+      const url = p.get('url');
+      if (url) { probeOnce(url); }
+    })();
+    </script>
+  </head>
+  <body></body>
+  </html>
+

@@ -35,19 +35,19 @@
                 <button id="startBtn" class="px-4 py-2 bg-blue-600 text-white rounded">Start</button>
                 <button id="stopBtn" class="px-4 py-2 bg-red-600 text-white rounded">Stop</button>
                 <button id="downloadBtn" class="px-4 py-2 bg-gray-700 text-white rounded">Download CSV</button>
-                <button id="probeBtn" class="px-4 py-2 bg-emerald-700 text-white rounded">Run Deep Probe</button>
+                <button id="comprehensiveBtn" class="px-4 py-2 bg-emerald-700 text-white rounded">Run Comprehensive Probe</button>
             </div>
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h2 class="text-lg font-semibold mb-3">Targets</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://142.93.208.111/probe.txt" checked><span>Direct HTTP</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://142.93.208.111/probe.txt" checked><span>Direct HTTPS</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test-verge-test.shop/probe.txt" checked><span>VergeCloud HTTP</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test-verge-test.shop/probe.txt" checked><span>VergeCloud HTTPS</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test20250316.ir/probe.txt" checked><span>Anonymous HTTP</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test20250316.ir/probe.txt" checked><span>Anonymous HTTPS</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://142.93.208.111/large-probe.txt" checked><span>Direct HTTP</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://142.93.208.111/large-probe.txt" checked><span>Direct HTTPS</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test-verge-test.shop/large-probe.txt" checked><span>VergeCloud HTTP</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test-verge-test.shop/large-probe.txt" checked><span>VergeCloud HTTPS</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test20250316.ir/large-probe.txt" checked><span>Anonymous HTTP</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test20250316.ir/large-probe.txt" checked><span>Anonymous HTTPS</span></label>
             </div>
         </div>
 
@@ -156,31 +156,122 @@
             URL.revokeObjectURL(url);
         }
 
-        // Deep probe using Resource Timing (nextHopProtocol) and exposed headers
+        // Deep probe using CORS headers (preferred) + Resource Timing fallback
         async function deepProbe() {
             const urls = Array.from(document.querySelectorAll('.target:checked')).map(x => x.value);
             const thisRound = ++round;
             document.getElementById('status').textContent = `Deep probe ${thisRound}...`;
-            await Promise.all(urls.map(async (url) => {
+            performance.clearResourceTimings();
+            await Promise.all(urls.map(async (baseUrl) => {
+                const cacheBustedUrl = baseUrl + (baseUrl.includes('?') ? '&' : '?') + 'rt=' + Date.now();
                 const t0 = nowMs();
                 let cache = '', encoding = '', protocol = '';
                 try {
-                    await fetch(url, { mode: 'no-cors', method: 'GET', cache: 'reload' });
-                    const entries = performance.getEntriesByName(url);
-                    if (entries && entries.length > 0) {
-                        protocol = entries[entries.length - 1].nextHopProtocol || '';
+                    // Try CORS-enabled fetch first (origin sets ACAO: *). If CORS works, we can read headers directly.
+                    const res = await fetch(cacheBustedUrl, { mode: 'cors', method: 'GET', cache: 'no-cache' });
+                    // Read cache indicators
+                    const cfCache = res.headers.get('CF-Cache-Status');
+                    const xCache = res.headers.get('X-Cache') || res.headers.get('X-Cache-Status');
+                    const age = res.headers.get('Age');
+                    const acceptRanges = res.headers.get('Accept-Ranges');
+                    const contentEncoding = res.headers.get('Content-Encoding');
+                    if (contentEncoding) {
+                        encoding = contentEncoding;
+                    }
+                    if (cfCache) cache = cfCache;
+                    else if (xCache) cache = xCache;
+                    else if (age && parseInt(age, 10) > 0) cache = 'HIT (Age>0)';
+                    if (!cache) cache = acceptRanges ? 'EDGE (ranges ok)' : 'UNKNOWN';
+
+                    // Resource Timing for protocol and compression inference (wait briefly for the entry)
+                    const match = await waitForResourceTiming(cacheBustedUrl, baseUrl, 500);
+                    if (match) {
+                        protocol = match.nextHopProtocol || '';
+                        if (!encoding && match.decodedBodySize && match.encodedBodySize) {
+                            const ratio = match.encodedBodySize / match.decodedBodySize;
+                            if (ratio < 0.9) { encoding = 'compressed'; } else { encoding = 'none/unknown'; }
+                        }
+                        if (!cache && typeof match.transferSize === 'number') {
+                            if (match.transferSize === 0) cache = 'browser-cache';
+                            else if (match.transferSize < 400) cache = 'revalidated';
+                            else cache = 'network';
+                        }
                     }
                     const t1 = nowMs();
-                    appendRow(thisRound, url, 'GET', t1 - t0, 'OK', { cache, encoding, protocol });
+                    appendRow(thisRound, baseUrl, 'GET', t1 - t0, 'OK', { cache, encoding, protocol });
                 } catch (e) {
+                    // Fallback: try no-cors to at least capture Resource Timing
+                    try {
+                        await fetch(cacheBustedUrl, { mode: 'no-cors', method: 'GET', cache: 'no-cache' });
+                    } catch (_) {}
+                    const match = await waitForResourceTiming(cacheBustedUrl, baseUrl, 500);
+                    if (match) { protocol = match.nextHopProtocol || ''; }
                     const t1 = nowMs();
-                    appendRow(thisRound, url, 'GET', t1 - t0, 'CROSS-ORIGIN', { cache, encoding, protocol });
+                    appendRow(thisRound, baseUrl, 'GET', t1 - t0, 'CROSS-ORIGIN', { cache, encoding, protocol });
                 }
             }));
             document.getElementById('status').textContent = `Deep probe ${thisRound} done`;
         }
 
-        document.getElementById('probeBtn').addEventListener('click', deepProbe);
+        // Wait briefly for a matching Resource Timing entry to appear
+        function waitForResourceTiming(cacheBustedUrl, baseUrl, timeoutMs) {
+            const deadline = Date.now() + (timeoutMs || 300);
+            const candidates = [cacheBustedUrl, baseUrl];
+            return new Promise((resolve) => {
+                const check = () => {
+                    const entries = performance.getEntriesByType('resource');
+                    for (let i = entries.length - 1; i >= 0; i--) {
+                        const name = entries[i].name;
+                        if (candidates.some(u => name === u || name.startsWith(u)) || name.includes('large-probe.txt')) {
+                            resolve(entries[i]);
+                            return;
+                        }
+                    }
+                    if (Date.now() > deadline) { resolve(null); return; }
+                    setTimeout(check, 50);
+                };
+                setTimeout(check, 0);
+            });
+        }
+
+        // Same-origin agent approach: open CDN iframes that run timing and postMessage back
+        function runAgent() {
+            const targets = Array.from(document.querySelectorAll('.target:checked')).map(x => x.value);
+            const iframes = [];
+            const thisRound = ++round;
+            document.getElementById('status').textContent = `Agent probe ${thisRound}...`;
+            const expected = new Set(targets);
+            function onMsg(ev){
+                const d = ev.data || {};
+                if (d.type === 'cdn-proto' && expected.has(d.url)){
+                    expected.delete(d.url);
+                    appendRow(thisRound, d.url, 'GET', 0, 'OK', { protocol: d.protocol || '', cache: '', encoding: '' });
+                    if (expected.size === 0){
+                        window.removeEventListener('message', onMsg);
+                        document.getElementById('status').textContent = `Agent probe ${thisRound} done`;
+                        iframes.forEach(f => f.remove());
+                    }
+                }
+            }
+            window.addEventListener('message', onMsg);
+            targets.forEach((u) => {
+                try {
+                    const o = new URL(u);
+                    const agent = `${o.protocol}//${o.host}/tests/agent.html?url=${encodeURIComponent(u)}`;
+                    const f = document.createElement('iframe');
+                    f.src = agent; f.width = 0; f.height = 0; f.style.display = 'none';
+                    document.body.appendChild(f); iframes.push(f);
+                } catch (_) {}
+            });
+        }
+        
+        async function runComprehensive() {
+            // First run deepProbe to capture cache/encoding and attempt protocol via TAO
+            await deepProbe();
+            // Then run agent to guarantee protocol capture via same-origin iframes
+            runAgent();
+        }
+        document.getElementById('comprehensiveBtn').addEventListener('click', runComprehensive);
 
         document.getElementById('startBtn').addEventListener('click', start);
         document.getElementById('stopBtn').addEventListener('click', stop);
