@@ -1,0 +1,20 @@
+[ req ]
+default_bits       = 2048
+distinguished_name = req_distinguished_name
+req_extensions     = v3_req
+prompt             = no
+
+[ req_distinguished_name ]
+C  = US
+ST = Test
+L  = Test
+O  = VergeCloud Edge
+OU = CDN
+CN = test-verge-test.shop
+
+[ v3_req ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = test-verge-test.shop
+DNS.2 = www.test-verge-test.shop
