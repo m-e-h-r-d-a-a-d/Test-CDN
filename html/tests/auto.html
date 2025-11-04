@@ -36,19 +36,51 @@
                 <button id="stopBtn" class="px-4 py-2 bg-red-600 text-white rounded">Stop</button>
                 <button id="downloadBtn" class="px-4 py-2 bg-gray-700 text-white rounded">Download CSV</button>
                 <button id="comprehensiveBtn" class="px-4 py-2 bg-emerald-700 text-white rounded">Run Comprehensive Probe</button>
+                <button id="apiBtn" class="px-4 py-2 bg-indigo-700 text-white rounded">Test API/Redirect/Hotlink</button>
+                <button id="cacheBtn" class="px-4 py-2 bg-teal-700 text-white rounded">Run Cache Validation</button>
+                <button id="compressBtn" class="px-4 py-2 bg-purple-700 text-white rounded">Compression Test</button>
+                <button id="protoBtn" class="px-4 py-2 bg-amber-700 text-white rounded">Protocol Test (h2/h3)</button>
+                <button id="rangeBtn" class="px-4 py-2 bg-pink-700 text-white rounded">Range Request Test</button>
+                <button id="staleBtn" class="px-4 py-2 bg-slate-700 text-white rounded">Stale Revalidate Test</button>
+                <button id="cacheKeyBtn" class="px-4 py-2 bg-gray-800 text-white rounded">Cache Key Variants</button>
+                <button id="rateBtn" class="px-4 py-2 bg-red-800 text-white rounded">Rate Limit Burst</button>
+                <button id="geoBtn" class="px-4 py-2 bg-cyan-800 text-white rounded">Geo Capture</button>
             </div>
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h2 class="text-lg font-semibold mb-3">Targets</h2>
-            <div class="grid grid-cols-3 gap-4">
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://142.93.208.111/large-probe.txt" checked><span>Direct HTTP</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test-verge-test.shop/large-probe.txt" checked><span>VergeCloud HTTP</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test20250316.ir/large-probe.txt" checked><span>Anonymous HTTP</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://142.93.208.111/large-probe.txt" checked><span>Direct HTTPS</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test-verge-test.shop/large-probe.txt" checked><span>VergeCloud HTTPS</span></label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test20250316.ir/large-probe.txt" checked><span>Anonymous HTTPS</span></label>
+            <p class="text-sm text-gray-600 mb-2">Select the endpoints to probe (large-probe for compression/bandwidth, root for HTML caching, probe.txt for cache hit/miss).</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+                <div>
+                    <div class="font-medium mb-1">Large file</div>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://142.93.208.111/large-probe.txt" checked><span>Direct HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://142.93.208.111/large-probe.txt" checked><span>Direct HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test-verge-test.shop/large-probe.txt" checked><span>VergeCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test-verge-test.shop/large-probe.txt" checked><span>VergeCloud HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test20250316.ir/large-probe.txt" checked><span>Anonymous HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test20250316.ir/large-probe.txt" checked><span>Anonymous HTTPS</span></label>
+                </div>
+                <div>
+                    <div class="font-medium mb-1">Root (/)</div>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://142.93.208.111/"><span>Direct HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://142.93.208.111/"><span>Direct HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test-verge-test.shop/"><span>VergeCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test-verge-test.shop/"><span>VergeCloud HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test20250316.ir/"><span>Anonymous HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test20250316.ir/"><span>Anonymous HTTPS</span></label>
+                </div>
+                <div>
+                    <div class="font-medium mb-1">Small (probe.txt)</div>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://142.93.208.111/probe.txt"><span>Direct HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://142.93.208.111/probe.txt"><span>Direct HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test-verge-test.shop/probe.txt"><span>VergeCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test-verge-test.shop/probe.txt"><span>VergeCloud HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test20250316.ir/probe.txt"><span>Anonymous HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test20250316.ir/probe.txt"><span>Anonymous HTTPS</span></label>
+                </div>
             </div>
+            <div class="text-xs text-gray-500">Tip: enable only HTTPS for cross‑provider comparisons once SSL is valid.</div>
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
@@ -75,6 +107,7 @@
                     <tbody id="tbody"></tbody>
                 </table>
             </div>
+            <div class="mt-4" id="summary"></div>
         </div>
     </div>
 
@@ -119,7 +152,238 @@
                             <td class="px-3 py-2">${extras.encoding || ''}</td>
                             <td class="px-3 py-2">${extras.protocol || ''}</td>`;
             document.getElementById('tbody').appendChild(tr);
+            renderSummary();
         }
+
+        function groupBy(arr, fnKey){
+            const out = new Map();
+            for (const item of arr){
+                const k = fnKey(item);
+                if (!out.has(k)) out.set(k, []);
+                out.get(k).push(item);
+            }
+            return out;
+        }
+
+        function percentile(values, p){
+            if (!values.length) return 0;
+            const s = [...values].sort((a,b)=>a-b);
+            const idx = Math.min(s.length - 1, Math.max(0, Math.floor((p/100) * s.length)));
+            return s[idx];
+        }
+
+        function renderSummary(){
+            const el = document.getElementById('summary');
+            if (!rows.length){ el.innerHTML = ''; return; }
+            // Aggregate by (host, scheme)
+            const byTarget = groupBy(rows, r => {
+                try { const u = new URL(r.url); return `${u.protocol}//${u.host}`; } catch { return r.url; }
+            });
+            let html = '<div class="text-sm"><div class="font-medium mb-1">Summary (p50/p90, successes)</div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">';
+            for (const [k, list] of byTarget){
+                const oks = list.filter(r => r.status === 'OK');
+                const times = oks.map(r => r.ms);
+                const p50 = percentile(times, 50);
+                const p90 = percentile(times, 90);
+                html += `<div class="border rounded p-2"><div class="font-mono text-xs text-gray-600">${k}</div><div><span class="font-semibold">p50:</span> ${p50 || '-'} ms &nbsp; <span class="font-semibold">p90:</span> ${p90 || '-'} ms</div><div class="text-xs text-gray-600">${oks.length}/${list.length} OK</div></div>`;
+            }
+            html += '</div></div>';
+            el.innerHTML = html;
+        }
+
+        // --- API / Redirect / Hotlink tests ---
+        async function runApiSuite(){
+            const baseHosts = [
+                'http://142.93.208.111', 'https://142.93.208.111',
+                'http://test-verge-test.shop', 'https://test-verge-test.shop',
+                'http://test20250316.ir', 'https://test20250316.ir'
+            ];
+            const roundNo = ++round;
+            document.getElementById('status').textContent = `API suite round ${roundNo}...`;
+            const tests = [];
+            for (const host of baseHosts){
+                const api = `${host}/api/time?ttl=60&_=${Date.now()}`;
+                const r301 = `${host}/redirect/301`;
+                const r302 = `${host}/redirect/302`;
+                tests.push({ url: api, kind: 'GET', ref: '' });
+                tests.push({ url: r301, kind: 'HEAD', ref: '' });
+                tests.push({ url: r302, kind: 'HEAD', ref: '' });
+                // Hotlink allow (same-site referer for origin only)
+                tests.push({ url: `${host}/protected.txt`, kind: 'HEAD', ref: host });
+                // Hotlink deny
+                tests.push({ url: `${host}/protected.txt`, kind: 'HEAD', ref: 'http://evil.tld/' });
+            }
+            await Promise.all(tests.map(async t => {
+                const t0 = nowMs();
+                try{
+                    const headers = { 'Cache-Control': 'no-cache' };
+                    const opts = { method: t.kind, mode: 'no-cors', cache: 'no-cache' };
+                    try{ if (t.ref) opts['referrer'] = t.ref; }catch(_){}
+                    await fetch(t.url, opts);
+                    appendRow(roundNo, t.url, t.kind, nowMs()-t0, 'OK');
+                }catch(e){
+                    appendRow(roundNo, t.url, t.kind, nowMs()-t0, 'ERR');
+                }
+            }));
+            document.getElementById('status').textContent = `API suite round ${roundNo} done`;
+        }
+
+        // --- Cache validation tests (ETag/IMS) ---
+        async function runCacheValidation(){
+            const targets = [
+                'https://test-verge-test.shop/',
+                'https://test20250316.ir/',
+                'https://test-verge-test.shop/large-probe.txt',
+                'https://test20250316.ir/large-probe.txt'
+            ];
+            const roundNo = ++round;
+            document.getElementById('status').textContent = `Cache validation ${roundNo}...`;
+            for (const url of targets){
+                try{
+                    // First fetch to capture validators via CORS if possible; fallback to resource timing
+                    let etag = '', lastMod = '';
+                    try{
+                        const r1 = await fetch(url, { method: 'GET', mode: 'cors', cache:'no-cache' });
+                        etag = r1.headers.get('ETag') || '';
+                        lastMod = r1.headers.get('Last-Modified') || '';
+                        appendRow(roundNo, url, 'GET', 0, 'OK', { cache: r1.headers.get('Age') || '' });
+                    }catch(_){
+                        appendRow(roundNo, url, 'GET', 0, 'CROSS-ORIGIN');
+                    }
+                    // Conditional requests
+                    const condHeaders = {};
+                    if (etag) condHeaders['If-None-Match'] = etag;
+                    if (lastMod) condHeaders['If-Modified-Since'] = lastMod;
+                    const t0 = nowMs();
+                    try{
+                        await fetch(url + (url.includes('?')?'&':'?')+ 'cv=' + Date.now(), { method:'GET', headers: condHeaders, mode:'no-cors', cache:'no-cache' });
+                        appendRow(roundNo, url, 'COND', nowMs()-t0, 'OK');
+                    }catch(e){
+                        appendRow(roundNo, url, 'COND', nowMs()-t0, 'ERR');
+                    }
+                }catch(_){
+                    appendRow(roundNo, url, 'GET', 0, 'ERR');
+                }
+            }
+            document.getElementById('status').textContent = `Cache validation ${roundNo} done`;
+        }
+
+        document.getElementById('apiBtn').addEventListener('click', runApiSuite);
+        document.getElementById('cacheBtn').addEventListener('click', runCacheValidation);
+
+        // Compression test: compute encoded/decoded ratio via Resource Timing
+        async function runCompression(){
+            const urls = [
+                'https://test-verge-test.shop/large-probe.txt',
+                'https://test20250316.ir/large-probe.txt',
+                'https://142.93.208.111/large-probe.txt'
+            ];
+            const roundNo = ++round;
+            document.getElementById('status').textContent = `Compression test ${roundNo}...`;
+            performance.clearResourceTimings();
+            await Promise.all(urls.map(async (u)=>{
+                const t0 = nowMs();
+                try{ await fetch(u + '?c=' + Date.now(), { mode:'no-cors', cache:'no-cache' }); }catch(_){ }
+                const deadline = Date.now()+800; let entry=null;
+                while(Date.now()<deadline){ const es=performance.getEntriesByType('resource'); entry=es.find(e=>e.name.startsWith(u)); if(entry) break; await new Promise(r=>setTimeout(r,50)); }
+                let ratio='';
+                if (entry && entry.decodedBodySize && entry.encodedBodySize){
+                    ratio = (entry.encodedBodySize/entry.decodedBodySize).toFixed(3);
+                }
+                appendRow(roundNo, u, 'GET', nowMs()-t0, 'OK', { encoding: ratio?`ratio=${ratio}`:'' , protocol: entry&&entry.nextHopProtocol||''});
+            }));
+            document.getElementById('status').textContent = `Compression test ${roundNo} done`;
+        }
+        document.getElementById('compressBtn').addEventListener('click', runCompression);
+
+        // Protocol test: capture nextHopProtocol
+        async function runProtocol(){
+            const urls = [
+                'https://test-verge-test.shop/',
+                'https://test20250316.ir/',
+                'https://142.93.208.111/'
+            ];
+            const roundNo = ++round; performance.clearResourceTimings();
+            await Promise.all(urls.map(async u=>{ try{ await fetch(u+'?p='+Date.now(), {mode:'no-cors', cache:'no-cache'});}catch(_){}}));
+            await new Promise(r=>setTimeout(r,400));
+            urls.forEach(u=>{
+                const e = performance.getEntriesByType('resource').find(x=>x.name.startsWith(u));
+                appendRow(roundNo, u, 'PROTO', 0, 'OK', { protocol: e&&e.nextHopProtocol||'' });
+            });
+        }
+        document.getElementById('protoBtn').addEventListener('click', runProtocol);
+
+        // Range request test: attempt partial GET with Range header (works same-origin; opaque otherwise)
+        async function runRange(){
+            const urls = [
+                'https://142.93.208.111/large-probe.txt',
+                'https://test-verge-test.shop/large-probe.txt',
+                'https://test20250316.ir/large-probe.txt'
+            ];
+            const roundNo = ++round;
+            for (const u of urls){
+                const t0 = nowMs();
+                try { await fetch(u+'?r='+Date.now(), { method:'GET', mode:'no-cors', cache:'no-cache', headers: { 'Range':'bytes=0-199' }}); appendRow(roundNo,u,'RANGE', nowMs()-t0, 'OK'); }
+                catch(_){ appendRow(roundNo,u,'RANGE', nowMs()-t0, 'ERR'); }
+            }
+        }
+        document.getElementById('rangeBtn').addEventListener('click', runRange);
+
+        // Stale tests hitting /api/stale on both CDNs
+        async function runStale(){
+            const urls = [
+                'https://test-verge-test.shop/api/stale',
+                'https://test20250316.ir/api/stale'
+            ];
+            const roundNo = ++round;
+            for (const u of urls){
+                const t0 = nowMs();
+                try { await fetch(u+'?s='+Date.now(), { mode:'no-cors', cache:'no-cache' }); appendRow(roundNo,u,'GET', nowMs()-t0, 'OK'); }
+                catch(_){ appendRow(roundNo,u,'GET', nowMs()-t0, 'ERR'); }
+            }
+        }
+        document.getElementById('staleBtn').addEventListener('click', runStale);
+
+        // Cache key variants: query permutations to see cache splits
+        async function runCacheKey(){
+            const bases = ['https://test-verge-test.shop/', 'https://test20250316.ir/'];
+            const variants = ['ck=v1','ck=v2','ck=v1&d=mobile','ck=v2&nocache=1'];
+            const roundNo = ++round;
+            for (const b of bases){
+                for (const v of variants){
+                    const url = b + (b.includes('?')?'&':'?') + v + '&t=' + Date.now();
+                    const t0 = nowMs();
+                    try { const r = await fetch(url, { mode:'no-cors', cache:'no-cache' }); appendRow(roundNo, url, 'GET', nowMs()-t0, 'OK'); }
+                    catch(_){ appendRow(roundNo, url, 'GET', nowMs()-t0, 'ERR'); }
+                }
+            }
+        }
+        document.getElementById('cacheKeyBtn').addEventListener('click', runCacheKey);
+
+        // Rate limiting: burst N requests quickly to CDN roots
+        async function runRateBurst(){
+            const targets = ['https://test-verge-test.shop/','https://test20250316.ir/'];
+            const roundNo = ++round; const burst=25;
+            await Promise.all(targets.map(async (t)=>{
+                const ps=[]; for (let i=0;i<burst;i++){ ps.push(fetch(t+'?rb='+Date.now()+'-'+i,{mode:'no-cors',cache:'no-cache'})); }
+                const t0 = nowMs();
+                try { await Promise.allSettled(ps); appendRow(roundNo, t, 'BURSTx'+burst, nowMs()-t0, 'OK'); }
+                catch(_){ appendRow(roundNo, t, 'BURSTx'+burst, nowMs()-t0, 'ERR'); }
+            }));
+        }
+        document.getElementById('rateBtn').addEventListener('click', runRateBurst);
+
+        // Geo capture using CORS on /api/time (reads X-Geo-Country)
+        async function runGeo(){
+            const urls=['https://test-verge-test.shop/api/time?ttl=0','https://test20250316.ir/api/time?ttl=0'];
+            const roundNo = ++round;
+            for (const u of urls){
+                const t0 = nowMs();
+                try { const r = await fetch(u+'&g='+Date.now(), {mode:'cors',cache:'no-cache'}); const geo = r.headers.get('X-Geo-Country')||''; appendRow(roundNo, u, 'GET', nowMs()-t0, 'OK', { cache: '', encoding: '', protocol: geo }); }
+                catch(_){ appendRow(roundNo, u, 'GET', nowMs()-t0, 'ERR'); }
+            }
+        }
+        document.getElementById('geoBtn').addEventListener('click', runGeo);
 
         function start() {
             if (timer) return;
@@ -147,7 +411,11 @@
         function downloadCsv() {
             const header = 'round,url,method,time_ms,status,cache,encoding,protocol\n';
             const body = rows.map(r => `${r.round},${r.url},${r.method},${r.ms},${r.status},${r.cache || ''},${r.encoding || ''},${r.protocol || ''}`).join('\n');
-            const blob = new Blob([header + body], { type: 'text/csv' });
+            // Append aggregates per target (p50/p90)
+            const byTarget = groupBy(rows, r => { try{ const u=new URL(r.url); return `${u.protocol}//${u.host}`; }catch{ return r.url; } });
+            let agg = '\n\n# aggregates target,p50_ms,p90_ms,ok,total\n';
+            for (const [k, list] of byTarget){ const oks=list.filter(r=>r.status==='OK'); const times=oks.map(r=>r.ms); agg += `${k},${percentile(times,50)},${percentile(times,90)},${oks.length},${list.length}\n`; }
+            const blob = new Blob([header + body + agg], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
