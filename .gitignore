@@ -3,3 +3,11 @@ nginx/ssl/vergecloud.crt
 nginx/ssl/vergecloud.key
 nginx/ssl/*.crt
 nginx/ssl/*.key
+# Local environment overrides
+.env
+
+# Do not commit issued edge/origin certificates or keys
+vergecloud-edge/**/*.key
+vergecloud-edge/**/*.crt
+vergecloud-edge/**/*.pem
+vergecloud-edge/**/*.cer
