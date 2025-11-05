@@ -72,34 +72,41 @@
 <body>
     <div class="container">
         <h1>🚀 CDN Performance Testing Dashboard</h1>
-        <div style="margin: 10px 0 20px 0; display:flex; gap:12px; flex-wrap:wrap;">
+        <div style="margin: 10px 0 12px 0; display:flex; gap:12px; flex-wrap:wrap;">
             <a href="./index.html" style="color:#007cba; text-decoration:underline;">Dashboard</a>
             <a href="./tests/manual.html" style="color:#007cba; text-decoration:underline;">Manual Guide</a>
-            <a href="./tests/auto.html" style="color:#007cba; text-decoration:underline;">Automated Runner</a>
+            <a href="./tests/auto.html" style="color:#007cba; text-decoration:underline; font-weight:600;">Automated Runner</a>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+            <button class="tabBtn" data-tab="overview">Overview</button>
+            <button class="tabBtn" data-tab="quick">Quick Tests</button>
+            <button class="tabBtn" data-tab="compare">Compare</button>
         </div>
         
-        <div class="status">
+        <div class="status" id="panel-overview">
             <strong>✅ Status:</strong> Ready for CDN comparison testing!<br>
             <strong>🖥️ Server:</strong> Direct VPS (142.93.208.111)<br>
             <strong>⏱️ Loaded:</strong> <span id="load-time"></span>
         </div>
         
-        <div style="text-align:center; margin: 10px 0 24px 0;">
+        <div id="panel-overview-cta" style="text-align:center; margin: 10px 0 24px 0;">
             <button onclick="window.location.href='./tests/auto.html'" style="background:#1f7a1f; font-size:16px; padding:12px 28px; border:none; border-radius:6px; color:#fff; cursor:pointer;">
                 ▶️ Go to Automated Test Runner
             </button>
         </div>
         
-        <div class="test-section">
-            <h3>🔧 Performance Tests</h3>
-            <button onclick="testPerformance()">Test Load Speed</button>
-            <button onclick="testHeaders()">Check Headers</button>
-            <button onclick="testFromMultipleLocations()">Test Geographic Performance</button>
-            
-            <div id="performance-result" class="result" style="display:none;"></div>
+        <div id="panel-quick" class="test-section" style="display:none;">
+            <h3>⚡ Quick Tests</h3>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                <button onclick="testPerformance()">Load Metrics</button>
+                <button onclick="testHeaders()">Show Headers</button>
+                <button onclick="testFromMultipleLocations()">Geo Tools</button>
+                <button onclick="window.location.href='./tests/auto.html'">Open Runner</button>
+            </div>
+            <div class="result" id="performance-result" style="display:none;"></div>
         </div>
         
-        <div class="test-section">
+        <div id="panel-compare" class="test-section" style="display:none;">
             <h3>📊 CDN Comparison</h3>
             
             <!-- Test All Button -->
@@ -165,7 +172,18 @@
         // Show load time
         window.addEventListener('load', function() {
             document.getElementById('load-time').textContent = Date.now() - performance.timing.navigationStart + 'ms';
+            setTab('overview');
         });
+        function setTab(name){
+            document.getElementById('panel-overview').style.display = name==='overview' ? '' : 'none';
+            document.getElementById('panel-overview-cta').style.display = name==='overview' ? '' : 'none';
+            document.getElementById('panel-quick').style.display = name==='quick' ? '' : 'none';
+            document.getElementById('panel-compare').style.display = name==='compare' ? '' : 'none';
+            document.querySelectorAll('.tabBtn').forEach(b=>{
+                const active=b.dataset.tab===name; b.style.background= active?'#007cba':'#e6eef5'; b.style.color=active?'#fff':'#123';
+            });
+        }
+        document.querySelectorAll('.tabBtn').forEach(b=> b.addEventListener('click', ()=> setTab(b.dataset.tab)));
         
         async function testServer(type, url) {
             const resultDiv = document.getElementById(type + '-result');
