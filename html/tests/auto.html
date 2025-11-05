@@ -14,7 +14,12 @@
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="flex items-center gap-3 mb-4">
+                <button data-tab="basics" class="tab-btn px-3 py-1 rounded bg-blue-600 text-white">Basics</button>
+                <button data-tab="advanced" class="tab-btn px-3 py-1 rounded bg-gray-200">Advanced</button>
+                <button data-tab="analysis" class="tab-btn px-3 py-1 rounded bg-gray-200">Analysis</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="tab-basics">
                 <label class="block">
                     <span class="text-gray-700">Interval (ms)</span>
                     <input id="interval" type="number" value="5000" min="100" class="mt-1 block w-full rounded border-gray-300" />
@@ -31,56 +36,82 @@
                     </select>
                 </label>
             </div>
-            <div class="mt-4 flex gap-3 flex-wrap">
+            <div class="grid grid-cols-1 gap-3" id="tab-advanced" style="display:none;">
+                <div class="flex flex-wrap gap-3">
+                    <div class="text-sm text-gray-600">Presets:</div>
+                    <button data-preset="performance" class="px-3 py-1 rounded bg-purple-600 text-white">Performance</button>
+                    <button data-preset="validation" class="px-3 py-1 rounded bg-teal-600 text-white">Validation</button>
+                    <button data-preset="cdn-rules" class="px-3 py-1 rounded bg-amber-600 text-white">CDN Rules</button>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="api"> API/Redirect/Hotlink</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="cache"> Cache Validation</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="compression"> Compression</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="protocol"> Protocol (h2/h3)</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="range"> Range Requests</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="stale"> Stale Headers</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="cachekey"> Cache Key Variants</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="rate"> Rate Limiting</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="geo"> Geo Capture</label>
+                </div>
+                <div class="flex gap-3 flex-wrap">
+                    <button id="runSelected" class="px-4 py-2 bg-emerald-700 text-white rounded">Run Selected</button>
+                    <button id="comprehensiveBtn" class="px-4 py-2 bg-emerald-900 text-white rounded">Run Comprehensive</button>
+                </div>
+            </div>
+            <div class="mt-4 flex gap-3 flex-wrap" id="tab-actions">
                 <button id="startBtn" class="px-4 py-2 bg-blue-600 text-white rounded">Start</button>
                 <button id="stopBtn" class="px-4 py-2 bg-red-600 text-white rounded">Stop</button>
                 <button id="downloadBtn" class="px-4 py-2 bg-gray-700 text-white rounded">Download CSV</button>
-                <button id="comprehensiveBtn" class="px-4 py-2 bg-emerald-700 text-white rounded">Run Comprehensive Probe</button>
-                <button id="apiBtn" class="px-4 py-2 bg-indigo-700 text-white rounded">Test API/Redirect/Hotlink</button>
-                <button id="cacheBtn" class="px-4 py-2 bg-teal-700 text-white rounded">Run Cache Validation</button>
-                <button id="compressBtn" class="px-4 py-2 bg-purple-700 text-white rounded">Compression Test</button>
-                <button id="protoBtn" class="px-4 py-2 bg-amber-700 text-white rounded">Protocol Test (h2/h3)</button>
-                <button id="rangeBtn" class="px-4 py-2 bg-pink-700 text-white rounded">Range Request Test</button>
-                <button id="staleBtn" class="px-4 py-2 bg-slate-700 text-white rounded">Stale Revalidate Test</button>
-                <button id="cacheKeyBtn" class="px-4 py-2 bg-gray-800 text-white rounded">Cache Key Variants</button>
-                <button id="rateBtn" class="px-4 py-2 bg-red-800 text-white rounded">Rate Limit Burst</button>
-                <button id="geoBtn" class="px-4 py-2 bg-cyan-800 text-white rounded">Geo Capture</button>
+                <button id="clearBtn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded">Clear</button>
             </div>
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h2 class="text-lg font-semibold mb-3">Targets</h2>
-            <p class="text-sm text-gray-600 mb-2">Select the endpoints to probe (large-probe for compression/bandwidth, root for HTML caching, probe.txt for cache hit/miss).</p>
+            <p class="text-sm text-gray-600 mb-2">Select endpoints. Use group toggles to quickly include/exclude sections.</p>
+            <div class="flex flex-wrap gap-3 mb-3">
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-group" data-group="large" checked> Large file</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-group" data-group="root"> Root (/)</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-group" data-group="small"> Small (probe.txt)</label>
+                <span class="mx-2 text-gray-400">|</span>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-scheme" data-scheme="http"> HTTP</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-scheme" data-scheme="https" checked> HTTPS</label>
+                <span class="mx-2 text-gray-400">|</span>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-provider" data-provider="direct" checked> Direct</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-provider" data-provider="verge" checked> VergeCloud</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-provider" data-provider="anon" checked> Anonymous</label>
+            </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
                 <div>
                     <div class="font-medium mb-1">Large file</div>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://142.93.208.111/large-probe.txt" checked><span>Direct HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://142.93.208.111/large-probe.txt" checked><span>Direct HTTPS</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test-verge-test.shop/large-probe.txt" checked><span>VergeCloud HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test-verge-test.shop/large-probe.txt" checked><span>VergeCloud HTTPS</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test20250316.ir/large-probe.txt" checked><span>Anonymous HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test20250316.ir/large-probe.txt" checked><span>Anonymous HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="direct" data-scheme="http" value="http://142.93.208.111/large-probe.txt" checked><span>Direct HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="direct" data-scheme="https" value="https://142.93.208.111/large-probe.txt" checked><span>Direct HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="verge" data-scheme="http" value="http://test-verge-test.shop/large-probe.txt" checked><span>VergeCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="verge" data-scheme="https" value="https://test-verge-test.shop/large-probe.txt" checked><span>VergeCloud HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="anon" data-scheme="http" value="http://test20250316.ir/large-probe.txt" checked><span>Anonymous HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="anon" data-scheme="https" value="https://test20250316.ir/large-probe.txt" checked><span>Anonymous HTTPS</span></label>
                 </div>
                 <div>
                     <div class="font-medium mb-1">Root (/)</div>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://142.93.208.111/"><span>Direct HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://142.93.208.111/"><span>Direct HTTPS</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test-verge-test.shop/"><span>VergeCloud HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test-verge-test.shop/"><span>VergeCloud HTTPS</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test20250316.ir/"><span>Anonymous HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test20250316.ir/"><span>Anonymous HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="direct" data-scheme="http" value="http://142.93.208.111/"><span>Direct HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="direct" data-scheme="https" value="https://142.93.208.111/"><span>Direct HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="verge" data-scheme="http" value="http://test-verge-test.shop/"><span>VergeCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="verge" data-scheme="https" value="https://test-verge-test.shop/"><span>VergeCloud HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="anon" data-scheme="http" value="http://test20250316.ir/"><span>Anonymous HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="anon" data-scheme="https" value="https://test20250316.ir/"><span>Anonymous HTTPS</span></label>
                 </div>
                 <div>
                     <div class="font-medium mb-1">Small (probe.txt)</div>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://142.93.208.111/probe.txt"><span>Direct HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://142.93.208.111/probe.txt"><span>Direct HTTPS</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test-verge-test.shop/probe.txt"><span>VergeCloud HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test-verge-test.shop/probe.txt"><span>VergeCloud HTTPS</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="http://test20250316.ir/probe.txt"><span>Anonymous HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" value="https://test20250316.ir/probe.txt"><span>Anonymous HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="direct" data-scheme="http" value="http://142.93.208.111/probe.txt"><span>Direct HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="direct" data-scheme="https" value="https://142.93.208.111/probe.txt"><span>Direct HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="verge" data-scheme="http" value="http://test-verge-test.shop/probe.txt"><span>VergeCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="verge" data-scheme="https" value="https://test-verge-test.shop/probe.txt"><span>VergeCloud HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="anon" data-scheme="http" value="http://test20250316.ir/probe.txt"><span>Anonymous HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="anon" data-scheme="https" value="https://test20250316.ir/probe.txt"><span>Anonymous HTTPS</span></label>
                 </div>
             </div>
-            <div class="text-xs text-gray-500">Tip: enable only HTTPS for cross‑provider comparisons once SSL is valid.</div>
+            <div class="text-xs text-gray-500">Tip: toggle sections/schemes/providers to quickly shape the test set.</div>
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
@@ -90,6 +121,7 @@
 
         <div class="bg-white rounded-lg shadow p-6">
             <h2 class="text-lg font-semibold mb-3">Results</h2>
+            <div class="mb-4" id="ranked"></div>
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead class="bg-gray-100">
@@ -117,6 +149,11 @@
         const rows = [];
 
         function nowMs() { return Math.round(performance.now()); }
+        function setActiveTab(name){
+            const tabs = { basics: document.getElementById('tab-basics'), advanced: document.getElementById('tab-advanced'), actions: document.getElementById('tab-actions') };
+            for (const k of Object.keys(tabs)){ if (tabs[k]) tabs[k].style.display = (k===name || k==='actions') ? '' : 'none'; }
+            document.querySelectorAll('.tab-btn').forEach(b=>{ b.classList.toggle('bg-blue-600', b.dataset.tab===name); b.classList.toggle('text-white', b.dataset.tab===name); b.classList.toggle('bg-gray-200', b.dataset.tab!==name); });
+        }
 
         async function runOnce() {
             const method = document.getElementById('method').value;
@@ -140,19 +177,27 @@
             document.getElementById('status').textContent = `Round ${thisRound} done in ${endedAt - startedAt} ms`;
         }
 
+        function statusMeta(s){
+            if (s === 'OK') return { icon: '✅', bg: '#e8f5e8', fg: '#155724' };
+            if (s === 'ERR') return { icon: '❌', bg: '#fde8e8', fg: '#721c24' };
+            return { icon: '⚠️', bg: '#fff3cd', fg: '#856404' }; // unknown/opaque
+        }
+
         function appendRow(roundNo, url, method, ms, status, extras = {}) {
             rows.push({ round: roundNo, url, method, ms, status, ...extras });
             const tr = document.createElement('tr');
+            const meta = statusMeta(status);
             tr.innerHTML = `<td class="px-3 py-2">${roundNo}</td>
                             <td class="px-3 py-2">${url}</td>
                             <td class="px-3 py-2">${method}</td>
                             <td class="px-3 py-2">${ms}</td>
-                            <td class="px-3 py-2">${status}</td>
+                            <td class="px-3 py-2"><span style="padding:2px 8px; border-radius:10px; background:${meta.bg}; color:${meta.fg};">${meta.icon} ${status}</span></td>
                             <td class="px-3 py-2">${extras.cache || ''}</td>
                             <td class="px-3 py-2">${extras.encoding || ''}</td>
                             <td class="px-3 py-2">${extras.protocol || ''}</td>`;
             document.getElementById('tbody').appendChild(tr);
             renderSummary();
+            renderRanked();
         }
 
         function groupBy(arr, fnKey){
@@ -188,6 +233,16 @@
                 html += `<div class="border rounded p-2"><div class="font-mono text-xs text-gray-600">${k}</div><div><span class="font-semibold">p50:</span> ${p50 || '-'} ms &nbsp; <span class="font-semibold">p90:</span> ${p90 || '-'} ms</div><div class="text-xs text-gray-600">${oks.length}/${list.length} OK</div></div>`;
             }
             html += '</div></div>';
+            el.innerHTML = html;
+        }
+
+        function renderRanked(){
+            const el = document.getElementById('ranked');
+            const by = groupBy(rows.filter(r=>r.status==='OK'), r => { try{ const u=new URL(r.url); return `${u.protocol}//${u.host}`;}catch{ return r.url; } });
+            const cards=[]; for (const [k,list] of by){ const times=list.map(r=>r.ms); const p50=percentile(times,50); const p90=percentile(times,90); cards.push({k,p50,p90}); }
+            cards.sort((a,b)=>a.p50-b.p50);
+            let html='';
+            cards.forEach((c,i)=>{ const w=Math.min(100, Math.max(5, Math.round(100*(1-(c.p50/(c.p90||c.p50||1)))))); html+=`<div class="flex items-center gap-3 mb-2"><div class="w-8 text-xs">#${i+1}</div><div class="flex-1"><div class="font-mono text-xs text-gray-600">${c.k}</div><div class="h-2 bg-gray-200 rounded"><div class="h-2 bg-green-500 rounded" style="width:${w}%;"></div></div></div><div class="text-xs">p50 ${c.p50||'-'}ms</div><div class="text-xs text-gray-600">p90 ${c.p90||'-'}ms</div></div>`; });
             el.innerHTML = html;
         }
 
@@ -268,8 +323,8 @@
             document.getElementById('status').textContent = `Cache validation ${roundNo} done`;
         }
 
-        document.getElementById('apiBtn').addEventListener('click', runApiSuite);
-        document.getElementById('cacheBtn').addEventListener('click', runCacheValidation);
+        document.getElementById('apiBtn') && document.getElementById('apiBtn').addEventListener('click', runApiSuite);
+        document.getElementById('cacheBtn') && document.getElementById('cacheBtn').addEventListener('click', runCacheValidation);
 
         // Compression test: compute encoded/decoded ratio via Resource Timing
         async function runCompression(){
@@ -294,7 +349,7 @@
             }));
             document.getElementById('status').textContent = `Compression test ${roundNo} done`;
         }
-        document.getElementById('compressBtn').addEventListener('click', runCompression);
+        document.getElementById('compressBtn') && document.getElementById('compressBtn').addEventListener('click', runCompression);
 
         // Protocol test: capture nextHopProtocol
         async function runProtocol(){
@@ -311,7 +366,7 @@
                 appendRow(roundNo, u, 'PROTO', 0, 'OK', { protocol: e&&e.nextHopProtocol||'' });
             });
         }
-        document.getElementById('protoBtn').addEventListener('click', runProtocol);
+        document.getElementById('protoBtn') && document.getElementById('protoBtn').addEventListener('click', runProtocol);
 
         // Range request test: attempt partial GET with Range header (works same-origin; opaque otherwise)
         async function runRange(){
@@ -327,7 +382,7 @@
                 catch(_){ appendRow(roundNo,u,'RANGE', nowMs()-t0, 'ERR'); }
             }
         }
-        document.getElementById('rangeBtn').addEventListener('click', runRange);
+        document.getElementById('rangeBtn') && document.getElementById('rangeBtn').addEventListener('click', runRange);
 
         // Stale tests hitting /api/stale on both CDNs
         async function runStale(){
@@ -342,7 +397,37 @@
                 catch(_){ appendRow(roundNo,u,'GET', nowMs()-t0, 'ERR'); }
             }
         }
-        document.getElementById('staleBtn').addEventListener('click', runStale);
+        document.getElementById('staleBtn') && document.getElementById('staleBtn').addEventListener('click', runStale);
+        document.getElementById('clearBtn').addEventListener('click', ()=>{ rows.length=0; document.getElementById('tbody').innerHTML=''; renderSummary(); renderRanked(); });
+
+        document.querySelectorAll('.tab-btn').forEach(b=> b.addEventListener('click', ()=> setActiveTab(b.dataset.tab)));
+        setActiveTab('basics');
+
+        // Presets and Run Selected
+        const presetMap = {
+            performance: ['compression','protocol','range'],
+            validation: ['cache','stale','cachekey'],
+            'cdn-rules': ['api','rate','geo']
+        };
+        document.querySelectorAll('[data-preset]').forEach(btn=> btn.addEventListener('click', ()=>{
+            const key = btn.getAttribute('data-preset');
+            const picks = new Set(presetMap[key]||[]);
+            document.querySelectorAll('.preset-test').forEach(cb=> cb.checked = picks.has(cb.value));
+        }));
+        document.getElementById('runSelected').addEventListener('click', async ()=>{
+            const selected = Array.from(document.querySelectorAll('.preset-test:checked')).map(x=>x.value);
+            for (const s of selected){
+                if (s==='api') await runApiSuite();
+                if (s==='cache') await runCacheValidation();
+                if (s==='compression') await runCompression();
+                if (s==='protocol') await runProtocol();
+                if (s==='range') await runRange();
+                if (s==='stale') await runStale();
+                if (s==='cachekey') await runCacheKey();
+                if (s==='rate') await runRateBurst();
+                if (s==='geo') await runGeo();
+            }
+        });
 
         // Cache key variants: query permutations to see cache splits
         async function runCacheKey(){
@@ -358,7 +443,7 @@
                 }
             }
         }
-        document.getElementById('cacheKeyBtn').addEventListener('click', runCacheKey);
+        document.getElementById('cacheKeyBtn') && document.getElementById('cacheKeyBtn').addEventListener('click', runCacheKey);
 
         // Rate limiting: burst N requests quickly to CDN roots
         async function runRateBurst(){
@@ -371,7 +456,7 @@
                 catch(_){ appendRow(roundNo, t, 'BURSTx'+burst, nowMs()-t0, 'ERR'); }
             }));
         }
-        document.getElementById('rateBtn').addEventListener('click', runRateBurst);
+        document.getElementById('rateBtn') && document.getElementById('rateBtn').addEventListener('click', runRateBurst);
 
         // Geo capture using CORS on /api/time (reads X-Geo-Country)
         async function runGeo(){
@@ -383,7 +468,7 @@
                 catch(_){ appendRow(roundNo, u, 'GET', nowMs()-t0, 'ERR'); }
             }
         }
-        document.getElementById('geoBtn').addEventListener('click', runGeo);
+        document.getElementById('geoBtn') && document.getElementById('geoBtn').addEventListener('click', runGeo);
 
         function start() {
             if (timer) return;
@@ -544,6 +629,22 @@
         document.getElementById('startBtn').addEventListener('click', start);
         document.getElementById('stopBtn').addEventListener('click', stop);
         document.getElementById('downloadBtn').addEventListener('click', downloadCsv);
+
+        // --- Group toggles for Targets ---
+        function applyToggles(){
+            const typeOn = new Set(Array.from(document.querySelectorAll('.toggle-group:checked')).map(x=>x.dataset.group));
+            const schemeOn = new Set(Array.from(document.querySelectorAll('.toggle-scheme:checked')).map(x=>x.dataset.scheme));
+            const provOn = new Set(Array.from(document.querySelectorAll('.toggle-provider:checked')).map(x=>x.dataset.provider));
+            document.querySelectorAll('.target').forEach(cb=>{
+                const t = cb.getAttribute('data-type');
+                const s = cb.getAttribute('data-scheme');
+                const p = cb.getAttribute('data-provider');
+                cb.checked = typeOn.has(t) && schemeOn.has(s) && provOn.has(p);
+            });
+        }
+        document.querySelectorAll('.toggle-group, .toggle-scheme, .toggle-provider').forEach(cb=> cb.addEventListener('change', applyToggles));
+        // Initialize based on defaults
+        applyToggles();
     </script>
 </body>
 </html>
