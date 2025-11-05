@@ -57,6 +57,7 @@
                 <div class="flex gap-3 flex-wrap">
                     <button id="runSelected" class="px-4 py-2 bg-emerald-700 text-white rounded">Run Selected</button>
                     <button id="comprehensiveBtn" class="px-4 py-2 bg-emerald-900 text-white rounded">Run Comprehensive</button>
+                    <button id="runAllBtn" class="px-4 py-2 bg-indigo-800 text-white rounded">Run All Tests</button>
                 </div>
             </div>
             <div class="mt-4 flex gap-3 flex-wrap" id="tab-actions">
@@ -428,6 +429,23 @@
                 if (s==='geo') await runGeo();
             }
         });
+
+        // Run everything: Comprehensive (deepProbe+agent) + all feature tests
+        async function runAllTests(){
+            document.getElementById('status').textContent = 'Running all tests...';
+            try { await runComprehensive(); } catch(_){}
+            try { await runCompression(); } catch(_){}
+            try { await runProtocol(); } catch(_){}
+            try { await runRange(); } catch(_){}
+            try { await runStale(); } catch(_){}
+            try { await runCacheValidation(); } catch(_){}
+            try { await runApiSuite(); } catch(_){}
+            try { await runCacheKey(); } catch(_){}
+            try { await runRateBurst(); } catch(_){}
+            try { await runGeo(); } catch(_){}
+            document.getElementById('status').textContent = 'All tests completed';
+        }
+        document.getElementById('runAllBtn').addEventListener('click', runAllTests);
 
         // Cache key variants: query permutations to see cache splits
         async function runCacheKey(){
