@@ -66,7 +66,7 @@
         .direct { border-color: #007cba; }
         .cloudflare { border-color: #f48120; }
         .vergecloud { border-color: #00d4aa; }
-        .anonymous { border-color: #6f42c1; }
+        .arvancloud { border-color: #6f42c1; }
     </style>
 </head>
 <body>
@@ -138,14 +138,14 @@
                     <div id="vergecloud-https-result" class="result" style="display:none;"></div>
                 </div>
 
-                <div class="server-card anonymous">
-                    <h3>🕶️ Anonymous CDN</h3>
+                <div class="server-card arvancloud">
+                    <h3>☁️ ArvanCloud CDN</h3>
                     <p><strong>HTTP:</strong> http://test20250316.ir/</p>
                     <p><strong>HTTPS:</strong> https://test20250316.ir/</p>
-                    <button onclick="testServer('anonymous-http', 'http://test20250316.ir/')">Test HTTP</button>
-                    <button onclick="testServer('anonymous-https', 'https://test20250316.ir/')">Test HTTPS</button>
-                    <div id="anonymous-http-result" class="result" style="display:none;"></div>
-                    <div id="anonymous-https-result" class="result" style="display:none;"></div>
+                    <button onclick="testServer('arvancloud-http', 'http://test20250316.ir/')">Test HTTP</button>
+                    <button onclick="testServer('arvancloud-https', 'https://test20250316.ir/')">Test HTTPS</button>
+                    <div id="arvancloud-http-result" class="result" style="display:none;"></div>
+                    <div id="arvancloud-https-result" class="result" style="display:none;"></div>
                 </div>
             </div>
             
@@ -162,7 +162,7 @@
             <ol>
                 <li><strong>Baseline:</strong> Test direct server performance above</li>
                 <li><strong>VergeCloud:</strong> Go to <a href="https://vergecloud.com/" target="_blank">vergecloud.com</a> → Add domain → test-verge-test.shop</li>
-                <li><strong>Anonymous CDN:</strong> Add domain → test20250316.ir → origin VPS</li>
+                <li><strong>ArvanCloud CDN:</strong> Add domain → test20250316.ir → origin VPS</li>
                 <li><strong>Compare:</strong> Test all three and compare results!</li>
             </ol>
         </div>
@@ -270,8 +270,8 @@
                 { id: 'direct-https', url: 'https://142.93.208.111/', name: 'Direct HTTPS' },
                 { id: 'vergecloud-http', url: 'http://test-verge-test.shop/', name: 'VergeCloud HTTP' },
                 { id: 'vergecloud-https', url: 'https://test-verge-test.shop/', name: 'VergeCloud HTTPS' },
-                { id: 'anonymous-http', url: 'http://test20250316.ir/', name: 'Anonymous CDN HTTP' },
-                { id: 'anonymous-https', url: 'https://test20250316.ir/', name: 'Anonymous CDN HTTPS' }
+                { id: 'arvancloud-http', url: 'http://test20250316.ir/', name: 'ArvanCloud CDN HTTP' },
+                { id: 'arvancloud-https', url: 'https://test20250316.ir/', name: 'ArvanCloud CDN HTTPS' }
             ];
             
             const results = {};
@@ -352,7 +352,7 @@
                 const [server, protocol] = testId.split('-');
                 const serverName = server === 'direct' ? '🖥️ Direct Server' : 
                                  server === 'cloudflare' ? '☁️ Cloudflare CDN' : 
-                                 server === 'anonymous' ? '🕶️ Anonymous CDN' : '🌐 VergeCloud CDN';
+                                 server === 'arvancloud' ? '☁️ ArvanCloud CDN' : '🌐 VergeCloud CDN';
                 const protocolName = protocol.toUpperCase();
                 const performance = index === 0 ? '🥇 Fastest' : 
                                   index === 1 ? '🥈 Second' : 
@@ -377,7 +377,7 @@
                     const [server, protocol] = testId.split('-');
                     const serverName = server === 'direct' ? 'Direct Server' : 
                                      server === 'cloudflare' ? 'Cloudflare CDN' : 
-                                     server === 'anonymous' ? 'Anonymous CDN' : 'VergeCloud CDN';
+                                     server === 'arvancloud' ? 'ArvanCloud CDN' : 'VergeCloud CDN';
                     summaryHTML += `• ${serverName} (${protocol.toUpperCase()}): ${result.error}<br>`;
                 });
             }

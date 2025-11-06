@@ -15,5 +15,26 @@ services:
     networks:
       - cdnnet
 
+  api:
+    image: node:18-alpine
+    container_name: cdn-test-api
+    working_dir: /usr/src/app
+    command: sh -lc "cd /usr/src/app && npm install --production --silent && node server.js"
+    restart: unless-stopped
+    volumes:
+      - ./api:/usr/src/app
+    environment:
+      - PORT=8080
+      - CF_API_TOKEN=${CF_API_TOKEN}
+      - CF_ZONE_ID=${CF_ZONE_ID}
+      - ARVAN_API_BASE=${ARVAN_API_BASE}
+      - ARVAN_DOMAIN=${ARVAN_DOMAIN}
+      - ARVAN_TOKEN=${ARVAN_TOKEN}
+      - VERGE_API_BASE=${VERGE_API_BASE}
+      - VERGE_DOMAIN=${VERGE_DOMAIN}
+      - VERGE_TOKEN=${VERGE_TOKEN}
+    networks:
+      - cdnnet
+
 networks:
   cdnnet:
