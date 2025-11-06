@@ -81,7 +81,7 @@
                 <span class="mx-2 text-gray-400">|</span>
                 <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-provider" data-provider="direct" checked> Direct</label>
                 <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-provider" data-provider="verge" checked> VergeCloud</label>
-                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-provider" data-provider="anon" checked> Anonymous</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-provider" data-provider="arvan" checked> ArvanCloud</label>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
                 <div>
@@ -90,8 +90,8 @@
                     <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="direct" data-scheme="https" value="https://142.93.208.111/large-probe.txt" checked><span>Direct HTTPS</span></label>
                     <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="verge" data-scheme="http" value="http://test-verge-test.shop/large-probe.txt" checked><span>VergeCloud HTTP</span></label>
                     <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="verge" data-scheme="https" value="https://test-verge-test.shop/large-probe.txt" checked><span>VergeCloud HTTPS</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="anon" data-scheme="http" value="http://test20250316.ir/large-probe.txt" checked><span>Anonymous HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="anon" data-scheme="https" value="https://test20250316.ir/large-probe.txt" checked><span>Anonymous HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="arvan" data-scheme="http" value="http://test20250316.ir/large-probe.txt" checked><span>ArvanCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="arvan" data-scheme="https" value="https://test20250316.ir/large-probe.txt" checked><span>ArvanCloud HTTPS</span></label>
                 </div>
                 <div>
                     <div class="font-medium mb-1">Root (/)</div>
@@ -99,8 +99,8 @@
                     <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="direct" data-scheme="https" value="https://142.93.208.111/"><span>Direct HTTPS</span></label>
                     <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="verge" data-scheme="http" value="http://test-verge-test.shop/"><span>VergeCloud HTTP</span></label>
                     <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="verge" data-scheme="https" value="https://test-verge-test.shop/"><span>VergeCloud HTTPS</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="anon" data-scheme="http" value="http://test20250316.ir/"><span>Anonymous HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="anon" data-scheme="https" value="https://test20250316.ir/"><span>Anonymous HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="arvan" data-scheme="http" value="http://test20250316.ir/"><span>ArvanCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="arvan" data-scheme="https" value="https://test20250316.ir/"><span>ArvanCloud HTTPS</span></label>
                 </div>
                 <div>
                     <div class="font-medium mb-1">Small (probe.txt)</div>
@@ -108,11 +108,71 @@
                     <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="direct" data-scheme="https" value="https://142.93.208.111/probe.txt"><span>Direct HTTPS</span></label>
                     <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="verge" data-scheme="http" value="http://test-verge-test.shop/probe.txt"><span>VergeCloud HTTP</span></label>
                     <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="verge" data-scheme="https" value="https://test-verge-test.shop/probe.txt"><span>VergeCloud HTTPS</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="anon" data-scheme="http" value="http://test20250316.ir/probe.txt"><span>Anonymous HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="anon" data-scheme="https" value="https://test20250316.ir/probe.txt"><span>Anonymous HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="arvan" data-scheme="http" value="http://test20250316.ir/probe.txt"><span>ArvanCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="arvan" data-scheme="https" value="https://test20250316.ir/probe.txt"><span>ArvanCloud HTTPS</span></label>
                 </div>
             </div>
             <div class="text-xs text-gray-500">Tip: toggle sections/schemes/providers to quickly shape the test set.</div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-3">CDN Purge Helpers</h2>
+            <p class="text-sm text-gray-600 mb-2">Generate curl commands for cache purge. Copy and run in your terminal with your API token.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <label class="block">
+                    <span class="text-gray-700">Provider</span>
+                    <select id="purgeProvider" class="mt-1 block w-full rounded border-gray-300">
+                        <option value="verge">VergeCloud</option>
+                        <option value="arvan">ArvanCloud</option>
+                        <option value="cloudflare">Cloudflare-compatible</option>
+                    </select>
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">API Token</span>
+                    <input id="purgeToken" type="password" placeholder="paste token" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">URL to Purge</span>
+                    <input id="purgeUrl" type="text" value="https://test-verge-test.shop/" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+            </div>
+            <div class="mt-3 flex gap-3 flex-wrap">
+                <button id="makePurge" class="px-4 py-2 bg-gray-800 text-white rounded">Generate curl</button>
+                <button id="runPurge" class="px-4 py-2 bg-emerald-700 text-white rounded">Run Purge</button>
+                <button id="copyPurge" class="px-4 py-2 bg-gray-500 text-white rounded">Copy</button>
+            </div>
+            <pre id="purgeCmd" class="bg-gray-900 text-green-200 text-xs p-3 rounded mt-3 overflow-x-auto" style="min-height:48px;"></pre>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-3">Signed URL Generator</h2>
+            <p class="text-sm text-gray-600 mb-2">Create a signed URL (client-side HMAC) for testing CDN signed-URL features. This harness signs query string data; verification must be configured at the CDN edge.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <label class="block">
+                    <span class="text-gray-700">Secret</span>
+                    <input id="signSecret" type="password" placeholder="shared secret" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">Base URL</span>
+                    <input id="signBase" type="text" value="https://test-verge-test.shop/large-probe.txt" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">Expiry (min)</span>
+                    <input id="signExpiry" type="number" value="10" min="1" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">Extra (optional)</span>
+                    <input id="signExtra" type="text" placeholder="ck=v1" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+            </div>
+            <div class="mt-3 flex gap-3 flex-wrap">
+                <button id="genSigned" class="px-4 py-2 bg-indigo-700 text-white rounded">Generate</button>
+                <button id="copySigned" class="px-4 py-2 bg-gray-700 text-white rounded">Copy URL</button>
+                <button id="openSigned" class="px-4 py-2 bg-emerald-700 text-white rounded">Open</button>
+            </div>
+            <div class="mt-3 text-sm">
+                <div><strong>Signed URL:</strong> <span id="signedOut" class="break-all"></span></div>
+            </div>
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
@@ -663,6 +723,70 @@
         document.querySelectorAll('.toggle-group, .toggle-scheme, .toggle-provider').forEach(cb=> cb.addEventListener('change', applyToggles));
         // Initialize based on defaults
         applyToggles();
+
+        // --- Purge helpers ---
+        function makePurgeCurl(){
+            const prov = (document.getElementById('purgeProvider').value||'').toLowerCase();
+            const token = document.getElementById('purgeToken').value||'';
+            const url = document.getElementById('purgeUrl').value||'';
+            let cmd = '# Fill API token and run in your terminal\n';
+            if (prov==='cloudflare'){
+                cmd += `curl -X POST 'https://api.cloudflare.com/client/v4/zones/<zone_id>/purge_cache' \\\n  -H 'Authorization: Bearer ${token}' -H 'Content-Type: application/json' \\\n  --data '{"files":["${url}"]}'`;
+            } else if (prov==='arvan'){
+                cmd += `curl -X DELETE 'https://napi.arvancloud.ir/cdn/4.0/domains/<domain>/caching/purge' \\\n  -H 'Authorization: Apikey ${token}' -H 'Content-Type: application/json' \\\n  --data '{"paths":["${url}"]}'`;
+            } else {
+                cmd += `curl -X POST 'https://api.vergecloud.example/purge' \\
+  -H 'Authorization: Bearer ${token}' -H 'Content-Type: application/json' \\
+  --data '{"files":["${url}"]}'`;
+            }
+            document.getElementById('purgeCmd').textContent = cmd;
+        }
+        document.getElementById('makePurge').addEventListener('click', makePurgeCurl);
+        document.getElementById('copyPurge').addEventListener('click', ()=>{
+            const t = document.getElementById('purgeCmd').textContent; if (!t) return; navigator.clipboard.writeText(t);
+        });
+
+        async function runPurge(){
+            const prov = (document.getElementById('purgeProvider').value||'').toLowerCase();
+            const url = document.getElementById('purgeUrl').value||'';
+            const t0 = nowMs();
+            try{
+                const resp = await fetch('/mgmt/purge', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ provider: prov, url }) });
+                const json = await resp.json().catch(()=>({}));
+                appendRow(++round, url, 'PURGE', nowMs()-t0, resp.ok?'OK':'ERR', { cache: (json && json.result && json.result.status) ? String(json.result.status) : '' });
+            }catch(_){ appendRow(++round, url, 'PURGE', nowMs()-t0, 'ERR'); }
+        }
+        document.getElementById('runPurge').addEventListener('click', runPurge);
+
+        // --- Signed URL harness ---
+        async function hmacSHA256(keyBytes, msg){
+            const key = await crypto.subtle.importKey('raw', keyBytes, { name:'HMAC', hash:'SHA-256' }, false, ['sign']);
+            const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(msg));
+            return btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/, '');
+        }
+        async function generateSigned(){
+            const secret = document.getElementById('signSecret').value||'';
+            const base = document.getElementById('signBase').value||'';
+            const extra = document.getElementById('signExtra').value||'';
+            const expMin = Math.max(1, parseInt(document.getElementById('signExpiry').value||'10', 10));
+            const exp = Math.floor(Date.now()/1000) + (expMin*60);
+            const u = new URL(base);
+            if (extra){ const ps = new URLSearchParams(extra); ps.forEach((v,k)=> u.searchParams.set(k,v)); }
+            u.searchParams.set('exp', String(exp));
+            const toSign = `${u.pathname}?${u.searchParams.toString()}`;
+            const sig = await hmacSHA256(new TextEncoder().encode(secret), toSign);
+            u.searchParams.set('sig', sig);
+            const out = u.toString();
+            document.getElementById('signedOut').textContent = out;
+            return out;
+        }
+        document.getElementById('genSigned').addEventListener('click', generateSigned);
+        document.getElementById('copySigned').addEventListener('click', async ()=>{
+            const u = document.getElementById('signedOut').textContent; if (u) navigator.clipboard.writeText(u);
+        });
+        document.getElementById('openSigned').addEventListener('click', async ()=>{
+            const u = document.getElementById('signedOut').textContent || await generateSigned(); if (u) window.open(u, '_blank');
+        });
     </script>
 </body>
 </html>
