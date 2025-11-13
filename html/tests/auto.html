@@ -878,7 +878,7 @@
             if (prov==='cloudflare'){
                 cmd += `curl -X POST 'https://api.cloudflare.com/client/v4/zones/<zone_id>/purge_cache' \\\n  -H 'Authorization: Bearer ${token}' -H 'Content-Type: application/json' \\\n  --data '{"files":["${url}"]}'`;
             } else if (prov==='arvan'){
-                cmd += `curl -X DELETE 'https://napi.arvancloud.ir/cdn/4.0/domains/<domain>/caching/purge' \\\n  -H 'Authorization: Apikey ${token}' -H 'Content-Type: application/json' \\\n  --data '{"paths":["${url}"]}'`;
+                cmd += `curl -X POST 'https://napi.arvancloud.ir/cdn/4.0/domains/<domain>/caching/purge' \\\n  -H 'Authorization: ${token}' -H 'Content-Type: application/json' \\\n  --data '{"purge":"individual","purge_urls":["${url}"]}'`;
             } else {
                 cmd += `curl -X POST 'https://api.vergecloud.example/purge' \\
   -H 'Authorization: Bearer ${token}' -H 'Content-Type: application/json' \\
