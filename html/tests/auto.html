@@ -37,6 +37,10 @@
                 </label>
             </div>
             <div class="grid grid-cols-1 gap-3" id="tab-advanced" style="display:none;">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p class="text-sm text-blue-800 font-medium">🎯 Advanced Test Categories</p>
+                    <p class="text-sm text-blue-700">All test categories below are pre-selected. Use presets to quickly switch between different test focuses.</p>
+                </div>
                 <div class="flex flex-wrap gap-3">
                     <div class="text-sm text-gray-600">Presets:</div>
                     <button data-preset="performance" class="px-3 py-1 rounded bg-purple-600 text-white">Performance</button>
@@ -44,22 +48,26 @@
                     <button data-preset="cdn-rules" class="px-3 py-1 rounded bg-amber-600 text-white">CDN Rules</button>
                 </div>
                 <div class="flex flex-wrap gap-3">
-                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="api"> API/Redirect/Hotlink</label>
-                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="cache"> Cache Validation</label>
-                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="compression"> Compression</label>
-                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="protocol"> Protocol (h2/h3)</label>
-                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="range"> Range Requests</label>
-                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="stale"> Stale Headers</label>
-                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="cachekey"> Cache Key Variants</label>
-                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="rate"> Rate Limiting</label>
-                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="geo"> Geo Capture</label>
-                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="cache-adv"> Advanced Caching</label>
-                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="security"> Security/WAF</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="api" checked> API/Redirect/Hotlink</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="cache" checked> Cache Validation</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="compression" checked> Compression</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="protocol" checked> Protocol (h2/h3)</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="range" checked> Range Requests</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="stale" checked> Stale Headers</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="cachekey" checked> Cache Key Variants</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="rate" checked> Rate Limiting</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="geo" checked> Geo Capture</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="cache-adv" checked> Advanced Caching</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="security" checked> Security/WAF</label>
                 </div>
-                <div class="flex gap-3 flex-wrap">
+                <div class="flex gap-3 flex-wrap items-center">
                     <button id="runSelected" class="px-4 py-2 bg-emerald-700 text-white rounded">Run Selected</button>
                     <button id="comprehensiveBtn" class="px-4 py-2 bg-emerald-900 text-white rounded">Run Comprehensive</button>
-                    <button id="runAllBtn" class="px-4 py-2 bg-indigo-800 text-white rounded">Run All Tests</button>
+                    <button id="runAllBtn" class="px-6 py-3 bg-indigo-800 text-white rounded font-semibold text-lg shadow-lg hover:bg-indigo-900">🚀 Run All Tests (Everything)</button>
+                    <button id="selectAllBtn" class="px-3 py-2 bg-gray-500 text-white rounded text-sm">Select All</button>
+                </div>
+                <div class="mt-2 text-sm text-green-600 font-medium">
+                    ✅ Everything is pre-selected by default - just click "Run All Tests"!
                 </div>
             </div>
             <div class="mt-4 flex gap-3 flex-wrap" id="tab-actions">
@@ -72,13 +80,17 @@
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h2 class="text-lg font-semibold mb-3">Targets</h2>
-            <p class="text-sm text-gray-600 mb-2">Select endpoints. Use group toggles to quickly include/exclude sections.</p>
+            <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+                <p class="text-sm text-green-800 font-medium">✅ Everything is pre-selected by default!</p>
+                <p class="text-sm text-green-700">All test categories, providers, and endpoints are automatically checked. Just click "🚀 Run All Tests" to test everything.</p>
+            </div>
+            <p class="text-sm text-gray-600 mb-2">Use group toggles to quickly include/exclude sections if needed.</p>
             <div class="flex flex-wrap gap-3 mb-3">
                 <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-group" data-group="large" checked> Large file</label>
-                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-group" data-group="root"> Root (/)</label>
-                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-group" data-group="small"> Small (probe.txt)</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-group" data-group="root" checked> Root (/)</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-group" data-group="small" checked> Small (probe.txt)</label>
                 <span class="mx-2 text-gray-400">|</span>
-                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-scheme" data-scheme="http"> HTTP</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-scheme" data-scheme="http" checked> HTTP</label>
                 <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-scheme" data-scheme="https" checked> HTTPS</label>
                 <span class="mx-2 text-gray-400">|</span>
                 <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-provider" data-provider="direct" checked> Direct</label>
@@ -97,21 +109,21 @@
                 </div>
                 <div>
                     <div class="font-medium mb-1">Root (/)</div>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="direct" data-scheme="http" value="http://142.93.208.111/"><span>Direct HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="direct" data-scheme="https" value="https://142.93.208.111/"><span>Direct HTTPS</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="verge" data-scheme="http" value="http://test-verge-test.shop/"><span>VergeCloud HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="verge" data-scheme="https" value="https://test-verge-test.shop/"><span>VergeCloud HTTPS</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="arvan" data-scheme="http" value="http://test20250316.ir/"><span>ArvanCloud HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="arvan" data-scheme="https" value="https://test20250316.ir/"><span>ArvanCloud HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="direct" data-scheme="http" value="http://142.93.208.111/" checked><span>Direct HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="direct" data-scheme="https" value="https://142.93.208.111/" checked><span>Direct HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="verge" data-scheme="http" value="http://test-verge-test.shop/" checked><span>VergeCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="verge" data-scheme="https" value="https://test-verge-test.shop/" checked><span>VergeCloud HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="arvan" data-scheme="http" value="http://test20250316.ir/" checked><span>ArvanCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="arvan" data-scheme="https" value="https://test20250316.ir/" checked><span>ArvanCloud HTTPS</span></label>
                 </div>
                 <div>
                     <div class="font-medium mb-1">Small (probe.txt)</div>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="direct" data-scheme="http" value="http://142.93.208.111/probe.txt"><span>Direct HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="direct" data-scheme="https" value="https://142.93.208.111/probe.txt"><span>Direct HTTPS</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="verge" data-scheme="http" value="http://test-verge-test.shop/probe.txt"><span>VergeCloud HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="verge" data-scheme="https" value="https://test-verge-test.shop/probe.txt"><span>VergeCloud HTTPS</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="arvan" data-scheme="http" value="http://test20250316.ir/probe.txt"><span>ArvanCloud HTTP</span></label>
-                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="arvan" data-scheme="https" value="https://test20250316.ir/probe.txt"><span>ArvanCloud HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="direct" data-scheme="http" value="http://142.93.208.111/probe.txt" checked><span>Direct HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="direct" data-scheme="https" value="https://142.93.208.111/probe.txt" checked><span>Direct HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="verge" data-scheme="http" value="http://test-verge-test.shop/probe.txt" checked><span>VergeCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="verge" data-scheme="https" value="https://test-verge-test.shop/probe.txt" checked><span>VergeCloud HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="arvan" data-scheme="http" value="http://test20250316.ir/probe.txt" checked><span>ArvanCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="arvan" data-scheme="https" value="https://test20250316.ir/probe.txt" checked><span>ArvanCloud HTTPS</span></label>
                 </div>
             </div>
             <div class="text-xs text-gray-500">Tip: toggle sections/schemes/providers to quickly shape the test set.</div>
@@ -203,6 +215,110 @@
                 </table>
             </div>
             <div class="mt-4" id="summary"></div>
+
+            <!-- CDN Functionality Summary -->
+            <div id="cdn-summary" class="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border" style="display:none;">
+                <h3 class="text-lg font-semibold mb-3 text-gray-800">🧪 CDN Functionality Analysis</h3>
+
+                <!-- Legend -->
+                <div class="flex flex-wrap gap-4 mb-4 text-sm">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-green-500 rounded"></div>
+                        <span>Working Well</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-yellow-500 rounded"></div>
+                        <span>Issues Found</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-red-500 rounded"></div>
+                        <span>Not Working</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-gray-400 rounded"></div>
+                        <span>Not Tested</span>
+                    </div>
+                </div>
+
+                <!-- Provider Analysis Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div id="direct-summary-card" class="bg-white p-4 rounded-lg border shadow-sm">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-gray-800">🖥️ Direct Server</h4>
+                            <span id="direct-overall-status" class="px-2 py-1 text-xs rounded-full bg-gray-100">Ready</span>
+                        </div>
+                        <div class="space-y-1 text-sm">
+                            <div class="flex justify-between">
+                                <span>Caching:</span>
+                                <span id="direct-caching" class="text-green-600">✅</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Security:</span>
+                                <span id="direct-security" class="text-green-600">✅</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Performance:</span>
+                                <span id="direct-performance" class="text-green-600">✅</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="verge-summary-card" class="bg-white p-4 rounded-lg border shadow-sm">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-green-700">🌐 VergeCloud CDN</h4>
+                            <span id="verge-overall-status" class="px-2 py-1 text-xs rounded-full bg-gray-100">Analyzing...</span>
+                        </div>
+                        <div class="space-y-1 text-sm">
+                            <div class="flex justify-between">
+                                <span>Caching:</span>
+                                <span id="verge-caching" class="text-gray-400">⏳</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Security:</span>
+                                <span id="verge-security" class="text-gray-400">⏳</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Performance:</span>
+                                <span id="verge-performance" class="text-gray-400">⏳</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="arvan-summary-card" class="bg-white p-4 rounded-lg border shadow-sm">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-purple-700">☁️ ArvanCloud CDN</h4>
+                            <span id="arvan-overall-status" class="px-2 py-1 text-xs rounded-full bg-gray-100">Analyzing...</span>
+                        </div>
+                        <div class="space-y-1 text-sm">
+                            <div class="flex justify-between">
+                                <span>Caching:</span>
+                                <span id="arvan-caching" class="text-gray-400">⏳</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Security:</span>
+                                <span id="arvan-security" class="text-gray-400">⏳</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Performance:</span>
+                                <span id="arvan-performance" class="text-gray-400">⏳</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Issues and Recommendations -->
+                <div id="cdn-analysis" class="space-y-4">
+                    <div id="cdn-issues" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4" style="display:none;">
+                        <h4 class="text-yellow-800 font-semibold mb-2">⚠️ Issues Detected</h4>
+                        <div id="issues-content" class="text-sm text-yellow-700 space-y-1"></div>
+                    </div>
+
+                    <div id="cdn-recommendations" class="bg-blue-50 border border-blue-200 rounded-lg p-4" style="display:none;">
+                        <h4 class="text-blue-800 font-semibold mb-2">💡 Recommendations</h4>
+                        <div id="recommendations-content" class="text-sm text-blue-700 space-y-1"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -280,6 +396,192 @@
             return s[idx];
         }
 
+        function analyzeCDNFunctionality(){
+            const summaryDiv = document.getElementById('cdn-summary');
+            if (!rows.length) {
+                summaryDiv.style.display = 'none';
+                return;
+            }
+
+            // Group results by provider
+            const providerResults = {
+                direct: { caching: [], security: [], performance: [], totalTests: 0 },
+                verge: { caching: [], security: [], performance: [], totalTests: 0 },
+                arvan: { caching: [], security: [], performance: [], totalTests: 0 }
+            };
+
+            // Analyze each result
+            rows.forEach(row => {
+                const url = row.url;
+                const status = row.status;
+                let provider = 'direct';
+                let category = 'performance'; // default
+
+                // Determine provider
+                if (url.includes('test-verge-test.shop')) provider = 'verge';
+                else if (url.includes('test20250316.ir')) provider = 'arvan';
+
+                // Determine category based on endpoint
+                if (url.includes('/cache/') || url.includes('/api/time') || url.includes('/api/stale')) {
+                    category = 'caching';
+                } else if (url.includes('/security/') || url.includes('/redirect/') || url.includes('/protected/')) {
+                    category = 'security';
+                } else if (url.includes('/large-probe.txt') || url.includes('HEAD')) {
+                    category = 'performance';
+                }
+
+                providerResults[provider][category].push({ status, url });
+                providerResults[provider].totalTests++;
+            });
+
+            // Calculate scores and update UI
+            Object.keys(providerResults).forEach(provider => {
+                const results = providerResults[provider];
+                const totalTests = results.totalTests;
+
+                if (totalTests === 0) {
+                    // No tests for this provider yet
+                    updateProviderStatus(provider, 'gray', '⏳', '⏳', '⏳', 'Not Tested');
+                    return;
+                }
+
+                // Calculate success rates for each category
+                const cachingSuccess = calculateSuccessRate(results.caching);
+                const securitySuccess = calculateSuccessRate(results.security);
+                const performanceSuccess = calculateSuccessRate(results.performance);
+
+                // Determine overall status
+                const avgSuccess = (cachingSuccess.rate + securitySuccess.rate + performanceSuccess.rate) / 3;
+                let overallStatus, overallColor;
+                if (avgSuccess >= 0.9) {
+                    overallStatus = 'Excellent'; overallColor = 'green';
+                } else if (avgSuccess >= 0.7) {
+                    overallStatus = 'Good'; overallColor = 'blue';
+                } else if (avgSuccess >= 0.5) {
+                    overallStatus = 'Issues'; overallColor = 'yellow';
+                } else {
+                    overallStatus = 'Problems'; overallColor = 'red';
+                }
+
+                // Update UI
+                updateProviderStatus(
+                    provider,
+                    overallColor,
+                    getStatusIcon(cachingSuccess.rate),
+                    getStatusIcon(securitySuccess.rate),
+                    getStatusIcon(performanceSuccess.rate),
+                    overallStatus
+                );
+            });
+
+            // Generate issues and recommendations
+            generateIssuesAndRecommendations(providerResults);
+
+            // Show the summary
+            summaryDiv.style.display = 'block';
+        }
+
+        function calculateSuccessRate(tests) {
+            if (tests.length === 0) return { rate: 1, total: 0, success: 0 };
+            const success = tests.filter(t => t.status === 'OK').length;
+            return { rate: success / tests.length, total: tests.length, success };
+        }
+
+        function getStatusIcon(rate) {
+            if (rate >= 0.9) return '✅';
+            if (rate >= 0.7) return '⚠️';
+            if (rate >= 0.5) return '🟡';
+            return '❌';
+        }
+
+        function updateProviderStatus(provider, overallColor, cachingIcon, securityIcon, performanceIcon, overallText) {
+            const statusEl = document.getElementById(`${provider}-overall-status`);
+            const cachingEl = document.getElementById(`${provider}-caching`);
+            const securityEl = document.getElementById(`${provider}-security`);
+            const performanceEl = document.getElementById(`${provider}-performance`);
+
+            // Update status badge
+            statusEl.textContent = overallText;
+            statusEl.className = `px-2 py-1 text-xs rounded-full bg-${overallColor}-100 text-${overallColor}-800`;
+
+            // Update category icons
+            cachingEl.textContent = cachingIcon;
+            cachingEl.className = cachingIcon === '✅' ? 'text-green-600' :
+                                 cachingIcon === '⚠️' ? 'text-yellow-600' :
+                                 cachingIcon === '🟡' ? 'text-yellow-500' : 'text-red-600';
+
+            securityEl.textContent = securityIcon;
+            securityEl.className = securityIcon === '✅' ? 'text-green-600' :
+                                  securityIcon === '⚠️' ? 'text-yellow-600' :
+                                  securityIcon === '🟡' ? 'text-yellow-500' : 'text-red-600';
+
+            performanceEl.textContent = performanceIcon;
+            performanceEl.className = performanceIcon === '✅' ? 'text-green-600' :
+                                     performanceIcon === '⚠️' ? 'text-yellow-600' :
+                                     performanceIcon === '🟡' ? 'text-yellow-500' : 'text-red-600';
+        }
+
+        function generateIssuesAndRecommendations(providerResults) {
+            const issues = [];
+            const recommendations = [];
+
+            Object.keys(providerResults).forEach(provider => {
+                const results = providerResults[provider];
+                const providerName = provider === 'direct' ? 'Direct Server' :
+                                   provider === 'verge' ? 'VergeCloud CDN' : 'ArvanCloud CDN';
+
+                // Check for issues
+                ['caching', 'security', 'performance'].forEach(category => {
+                    const successRate = calculateSuccessRate(results[category]);
+                    if (successRate.rate < 0.8 && successRate.total > 0) {
+                        const failedTests = results[category].filter(t => t.status !== 'OK');
+                        if (failedTests.length > 0) {
+                            issues.push(`${providerName}: ${failedTests.length} ${category} test(s) failed`);
+                        }
+                    }
+                });
+
+                // Generate recommendations
+                if (provider !== 'direct') {
+                    const totalSuccess = (calculateSuccessRate(results.caching).rate +
+                                        calculateSuccessRate(results.security).rate +
+                                        calculateSuccessRate(results.performance).rate) / 3;
+
+                    if (totalSuccess < 0.7) {
+                        recommendations.push(`Review ${providerName} configuration - multiple features not working as expected`);
+                    }
+
+                    if (calculateSuccessRate(results.security).rate < 0.8) {
+                        recommendations.push(`Check ${providerName} WAF/security rules configuration`);
+                    }
+
+                    if (calculateSuccessRate(results.caching).rate < 0.8) {
+                        recommendations.push(`Review ${providerName} caching rules and cache key configuration`);
+                    }
+                }
+            });
+
+            // Update UI
+            const issuesDiv = document.getElementById('cdn-issues');
+            const issuesContent = document.getElementById('issues-content');
+            const recommendationsDiv = document.getElementById('cdn-recommendations');
+            const recommendationsContent = document.getElementById('recommendations-content');
+
+            if (issues.length > 0) {
+                issuesContent.innerHTML = issues.map(issue => `<div>• ${issue}</div>`).join('');
+                issuesDiv.style.display = 'block';
+            } else {
+                issuesDiv.style.display = 'none';
+            }
+
+            if (recommendations.length > 0) {
+                recommendationsContent.innerHTML = recommendations.map(rec => `<div>• ${rec}</div>`).join('');
+                recommendationsDiv.style.display = 'block';
+            } else {
+                recommendationsDiv.style.display = 'none';
+            }
+        }
+
         function renderSummary(){
             const el = document.getElementById('summary');
             if (!rows.length){ el.innerHTML = ''; return; }
@@ -297,6 +599,9 @@
             }
             html += '</div></div>';
             el.innerHTML = html;
+
+            // Show CDN functionality analysis if we have results
+            analyzeCDNFunctionality();
         }
 
         function renderRanked(){
@@ -510,6 +815,18 @@
             document.getElementById('status').textContent = 'All tests completed';
         }
         document.getElementById('runAllBtn').addEventListener('click', runAllTests);
+
+        // Select All button functionality
+        document.getElementById('selectAllBtn').addEventListener('click', function(){
+            // Select all preset tests
+            document.querySelectorAll('.preset-test').forEach(cb => cb.checked = true);
+            // Select all group toggles
+            document.querySelectorAll('.toggle-group').forEach(cb => cb.checked = true);
+            document.querySelectorAll('.toggle-scheme').forEach(cb => cb.checked = true);
+            document.querySelectorAll('.toggle-provider').forEach(cb => cb.checked = true);
+            // Select all target checkboxes
+            document.querySelectorAll('.target').forEach(cb => cb.checked = true);
+        });
 
         // Cache key variants: query permutations to see cache splits
         async function runCacheKey(){

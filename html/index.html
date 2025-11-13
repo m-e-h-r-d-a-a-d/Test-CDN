@@ -3,387 +3,342 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDN Performance Testing</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #f5f5f5;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        h1 { color: #333; }
-        .test-section {
-            margin: 20px 0;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        .status {
-            background: #e8f5e8;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 15px 0;
-        }
-        button {
-            background: #007cba;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-        }
-        button:hover { background: #005a87; }
-        .result {
-            margin-top: 10px;
-            padding: 10px;
-            background: #f9f9f9;
-            border-radius: 3px;
-            font-family: monospace;
-            font-size: 12px;
-        }
-        .comparison {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .server-card {
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 5px;
-            text-align: center;
-        }
-        .server-card h3 { margin-top: 0; }
-        .direct { border-color: #007cba; }
-        .cloudflare { border-color: #f48120; }
-        .vergecloud { border-color: #00d4aa; }
-        .arvancloud { border-color: #6f42c1; }
-    </style>
+    <title>CDN Functionality Tester</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>🚀 CDN Performance Testing Dashboard</h1>
-        <div style="margin: 10px 0 12px 0; display:flex; gap:12px; flex-wrap:wrap;">
-            <a href="./index.html" style="color:#007cba; text-decoration:underline;">Dashboard</a>
-            <a href="./tests/manual.html" style="color:#007cba; text-decoration:underline;">Manual Guide</a>
-            <a href="./tests/auto.html" style="color:#007cba; text-decoration:underline; font-weight:600;">Automated Runner</a>
+        <!-- Header -->
+        <div class="header">
+            <h1>🚀 CDN Functionality Tester</h1>
+            <p>Test all VergeCloud and ArvanCloud features with one click</p>
         </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
-            <button class="tabBtn" data-tab="overview">Overview</button>
-            <button class="tabBtn" data-tab="quick">Quick Tests</button>
-            <button class="tabBtn" data-tab="compare">Compare</button>
-        </div>
-        
-        <div class="status" id="panel-overview">
-            <strong>✅ Status:</strong> Ready for CDN comparison testing!<br>
-            <strong>🖥️ Server:</strong> Direct VPS (142.93.208.111)<br>
-            <strong>⏱️ Loaded:</strong> <span id="load-time"></span>
-        </div>
-        
-        <div id="panel-overview-cta" style="text-align:center; margin: 10px 0 24px 0;">
-            <button onclick="window.location.href='./tests/auto.html'" style="background:#1f7a1f; font-size:16px; padding:12px 28px; border:none; border-radius:6px; color:#fff; cursor:pointer;">
-                ▶️ Go to Automated Test Runner
-            </button>
-        </div>
-        
-        <div id="panel-quick" class="test-section" style="display:none;">
-            <h3>⚡ Quick Tests</h3>
-            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-                <button onclick="testPerformance()">Load Metrics</button>
-                <button onclick="testHeaders()">Show Headers</button>
-                <button onclick="testFromMultipleLocations()">Geo Tools</button>
-                <button onclick="window.location.href='./tests/auto.html'">Open Runner</button>
-            </div>
-            <div class="result" id="performance-result" style="display:none;"></div>
-        </div>
-        
-        <div id="panel-compare" class="test-section" style="display:none;">
-            <h3>📊 CDN Comparison</h3>
-            
-            <!-- Test All Button -->
-            <div style="text-align: center; margin-bottom: 20px;">
-                <button onclick="testAllServers()" style="background: #28a745; font-size: 16px; padding: 12px 30px;">
-                    🚀 Test All Servers (HTTP & HTTPS)
-                </button>
-                <p style="color: #666; font-size: 14px;">Testing both HTTP and HTTPS performance</p>
-            </div>
-            
-            <div class="comparison">
-                <div class="server-card direct">
-                    <h3>🖥️ Direct Server</h3>
-                    <p><strong>HTTP:</strong> http://142.93.208.111/</p>
-                    <p><strong>HTTPS:</strong> https://142.93.208.111/</p>
-                    <button onclick="testServer('direct-http', 'http://142.93.208.111/')">Test HTTP</button>
-                    <button onclick="testServer('direct-https', 'https://142.93.208.111/')">Test HTTPS</button>
-                    <div id="direct-http-result" class="result" style="display:none;"></div>
-                    <div id="direct-https-result" class="result" style="display:none;"></div>
+
+        <!-- Main Grid Layout -->
+        <div class="main-grid">
+            <!-- Left Column: Control Panel -->
+            <div class="card">
+                <h2>⚙️ Test Configuration</h2>
+
+                <div class="control-panel">
+                    <!-- Number of Rounds -->
+                    <div class="form-group">
+                        <label for="rounds">Number of Rounds</label>
+                        <input id="rounds" type="number" value="3" min="1" max="10" />
+                    </div>
+
+                    <!-- Delay Between Tests -->
+                    <div class="form-group">
+                        <label for="delay">Delay Between Tests (seconds)</label>
+                        <input id="delay" type="number" value="2" min="0" max="10" step="0.5" />
+                    </div>
+
+                    <!-- Test Type Selection -->
+                    <div>
+                        <label style="font-weight: 600; color: #333; margin-bottom: 12px; display: block; font-size: 14px;">Select Test Type</label>
+                        <div class="test-types">
+                            <label class="test-type-btn">
+                                <input type="radio" name="testType" value="performance" checked />
+                                <div class="test-type-info">
+                                    <h4>⚡ Performance</h4>
+                                    <p>Speed & response time</p>
+                                </div>
+                            </label>
+
+                            <label class="test-type-btn">
+                                <input type="radio" name="testType" value="caching" />
+                                <div class="test-type-info">
+                                    <h4>💾 Caching</h4>
+                                    <p>Cache behavior & headers</p>
+                                </div>
+                            </label>
+
+                            <label class="test-type-btn">
+                                <input type="radio" name="testType" value="security" />
+                                <div class="test-type-info">
+                                    <h4>🔒 Security</h4>
+                                    <p>WAF & security rules</p>
+                                </div>
+                            </label>
+
+                            <label class="test-type-btn">
+                                <input type="radio" name="testType" value="all" />
+                                <div class="test-type-info">
+                                    <h4>🚀 All Tests</h4>
+                                    <p>Complete test suite</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Run Button -->
+                    <button class="btn btn-primary" onclick="startTests()" id="runBtn">
+                        ▶️ START TESTS
+                    </button>
                 </div>
-                
-                <div class="server-card vergecloud">
-                    <h3>🌐 VergeCloud CDN</h3>
-                    <p><strong>HTTP:</strong> http://test-verge-test.shop/</p>
-                    <p><strong>HTTPS:</strong> https://test-verge-test.shop/</p>
-                    <button onclick="testServer('vergecloud-http', 'http://test-verge-test.shop/')">Test HTTP</button>
-                    <button onclick="testServer('vergecloud-https', 'https://test-verge-test.shop/')">Test HTTPS</button>
-                    <div id="vergecloud-http-result" class="result" style="display:none;"></div>
-                    <div id="vergecloud-https-result" class="result" style="display:none;"></div>
+            </div>
+
+            <!-- Right Column: Results -->
+            <div class="card">
+                <h2>📊 Results</h2>
+
+                <!-- Progress Section -->
+                <div id="progressSection" style="display: none;">
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span class="label-text">Testing Progress</span>
+                            <span id="progressText">0%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar" id="progressBar"></div>
+                        </div>
+                    </div>
+                    <div class="status-box">
+                        <p class="status-text" id="statusMessage">🔄 Starting tests...</p>
+                    </div>
                 </div>
 
-                <div class="server-card arvancloud">
-                    <h3>☁️ ArvanCloud CDN</h3>
-                    <p><strong>HTTP:</strong> http://test20250316.ir/</p>
-                    <p><strong>HTTPS:</strong> https://test20250316.ir/</p>
-                    <button onclick="testServer('arvancloud-http', 'http://test20250316.ir/')">Test HTTP</button>
-                    <button onclick="testServer('arvancloud-https', 'https://test20250316.ir/')">Test HTTPS</button>
-                    <div id="arvancloud-http-result" class="result" style="display:none;"></div>
-                    <div id="arvancloud-https-result" class="result" style="display:none;"></div>
+                <!-- Results Section -->
+                <div id="resultsSection" class="results-section">
+                    <!-- Summary Cards -->
+                    <div class="summary-cards">
+                        <div class="summary-card direct">
+                            <div class="emoji">🖥️</div>
+                            <div class="provider-name">Direct Server</div>
+                            <div class="score" id="directScore">0/0</div>
+                            <div class="score-label">Features Working</div>
+                        </div>
+
+                        <div class="summary-card verge">
+                            <div class="emoji">🌐</div>
+                            <div class="provider-name">VergeCloud</div>
+                            <div class="score" id="vergeScore">0/0</div>
+                            <div class="score-label">Features Working</div>
+                        </div>
+
+                        <div class="summary-card arvan">
+                            <div class="emoji">☁️</div>
+                            <div class="provider-name">ArvanCloud</div>
+                            <div class="score" id="arvanScore">0/0</div>
+                            <div class="score-label">Features Working</div>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="legend">
+                        <h4>Status Indicators:</h4>
+                        <div class="legend-items">
+                            <div class="legend-item">
+                                <div class="legend-box success"></div>
+                                <span>✅ Working</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-box warning"></div>
+                                <span>⚠️ Issues</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-box error"></div>
+                                <span>❌ Failing</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-box loading"></div>
+                                <span>⏳ Testing</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Table -->
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Test Category</th>
+                                <th style="text-align: center;">Direct</th>
+                                <th style="text-align: center;">VergeCloud</th>
+                                <th style="text-align: center;">ArvanCloud</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTable">
+                            <!-- Results will be inserted here -->
+                        </tbody>
+                    </table>
+
+                    <!-- Issues Section -->
+                    <div class="issues-section" id="issuesSection">
+                        <h4>⚠️ Issues Found:</h4>
+                        <ul class="issues-list" id="issuesList"></ul>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="location.reload()">
+                            🔄 Test Again
+                        </button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('resultsSection').classList.remove('active'); document.getElementById('progressSection').style.display='none';">
+                            ◀ Back
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState">
+                    <p style="text-align: center; color: #999; padding: 40px 0;">
+                        👈 Configure tests on the left and click START TESTS to begin
+                    </p>
                 </div>
             </div>
-            
-            <!-- Results Summary -->
-            <div id="comparison-summary" class="result" style="display:none; margin-top: 20px; background: #e8f4f8;">
-                <h4>📊 Performance Summary</h4>
-                <div id="summary-content"></div>
-            </div>
         </div>
-        
-        <div class="test-section">
-            <h3>📋 Setup Instructions</h3>
-            <p><strong>Next Steps:</strong></p>
-            <ol>
-                <li><strong>Baseline:</strong> Test direct server performance above</li>
-                <li><strong>VergeCloud:</strong> Go to <a href="https://vergecloud.com/" target="_blank">vergecloud.com</a> → Add domain → test-verge-test.shop</li>
-                <li><strong>ArvanCloud CDN:</strong> Add domain → test20250316.ir → origin VPS</li>
-                <li><strong>Compare:</strong> Test all three and compare results!</li>
-            </ol>
+
+        <!-- Quick Links at Bottom -->
+        <div style="text-align: center; margin-top: 40px; color: white;">
+            <p>📖 <a href="./tests/manual.html" style="color: white; text-decoration: underline;">Manual Testing Guide</a> • 
+               📚 <a href="./tests/auto.html" style="color: white; text-decoration: underline;">Advanced Test Runner</a></p>
         </div>
     </div>
 
     <script>
-        // Show load time
-        window.addEventListener('load', function() {
-            document.getElementById('load-time').textContent = Date.now() - performance.timing.navigationStart + 'ms';
-            setTab('overview');
-        });
-        function setTab(name){
-            document.getElementById('panel-overview').style.display = name==='overview' ? '' : 'none';
-            document.getElementById('panel-overview-cta').style.display = name==='overview' ? '' : 'none';
-            document.getElementById('panel-quick').style.display = name==='quick' ? '' : 'none';
-            document.getElementById('panel-compare').style.display = name==='compare' ? '' : 'none';
-            document.querySelectorAll('.tabBtn').forEach(b=>{
-                const active=b.dataset.tab===name; b.style.background= active?'#007cba':'#e6eef5'; b.style.color=active?'#fff':'#123';
-            });
-        }
-        document.querySelectorAll('.tabBtn').forEach(b=> b.addEventListener('click', ()=> setTab(b.dataset.tab)));
-        
-        async function testServer(type, url) {
-            const resultDiv = document.getElementById(type + '-result');
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = '⏳ Testing...';
-            
-            const startTime = performance.now();
-            
+        async function startTests() {
+            const rounds = parseInt(document.getElementById('rounds').value) || 1;
+            const delay = parseFloat(document.getElementById('delay').value) || 1;
+            const testType = document.querySelector('input[name="testType"]:checked').value;
+
+            const runBtn = document.getElementById('runBtn');
+            const progressSection = document.getElementById('progressSection');
+            const resultsSection = document.getElementById('resultsSection');
+            const emptyState = document.getElementById('emptyState');
+
+            runBtn.disabled = true;
+            progressSection.style.display = 'block';
+            emptyState.style.display = 'none';
+            resultsSection.classList.remove('active');
+
             try {
-                const response = await fetch(url, { mode: 'no-cors' });
-                const endTime = performance.now();
-                const responseTime = Math.round(endTime - startTime);
-                
-                resultDiv.innerHTML = `
-                    <strong>✅ Response Time:</strong> ${responseTime}ms<br>
-                    <strong>📍 Status:</strong> ${response.status || 'Connected'}<br>
-                    <strong>🕐 Tested:</strong> ${new Date().toLocaleTimeString()}
-                `;
-                resultDiv.style.background = '#e8f5e8';
-            } catch (error) {
-                const endTime = performance.now();
-                const responseTime = Math.round(endTime - startTime);
-                
-                resultDiv.innerHTML = `
-                    <strong>⚠️ Response Time:</strong> ${responseTime}ms<br>
-                    <strong>📍 Status:</strong> Cross-origin (normal for CDN testing)<br>
-                    <strong>🕐 Tested:</strong> ${new Date().toLocaleTimeString()}
-                `;
-                resultDiv.style.background = '#fff3cd';
+                await runTests(testType, rounds, delay);
+                resultsSection.classList.add('active');
+            } finally {
+                runBtn.disabled = false;
+                progressSection.style.display = 'none';
             }
         }
-        
-        function testPerformance() {
-            const resultDiv = document.getElementById('performance-result');
-            resultDiv.style.display = 'block';
-            
-            const timing = performance.timing;
-            const loadTime = timing.loadEventEnd - timing.navigationStart;
-            const domReady = timing.domContentLoadedEventEnd - timing.navigationStart;
-            const firstByte = timing.responseStart - timing.navigationStart;
-            
-            resultDiv.innerHTML = `
-                <strong>📊 Performance Metrics:</strong><br>
-                • Time to First Byte: ${firstByte}ms<br>
-                • DOM Ready: ${domReady}ms<br>
-                • Full Load: ${loadTime}ms<br>
-                • Connection: ${timing.connectEnd - timing.connectStart}ms
-            `;
-            resultDiv.style.background = '#e8f5e8';
-        }
-        
-        function testHeaders() {
-            const resultDiv = document.getElementById('performance-result');
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `
-                <strong>🔍 Current Headers (check browser DevTools):</strong><br>
-                • Server: nginx (direct server)<br>
-                • X-Served-By: Check Network tab in DevTools<br>
-                • CF-Ray: Will appear with Cloudflare<br>
-                • X-Cache: Will appear with CDN providers
-            `;
-        }
-        
-        function testFromMultipleLocations() {
-            const resultDiv = document.getElementById('performance-result');
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `
-                <strong>🌍 Test from Multiple Locations:</strong><br>
-                • <a href="https://gtmetrix.com/" target="_blank">GTmetrix</a> - Test: http://142.93.208.111/<br>
-                • <a href="https://tools.pingdom.com/" target="_blank">Pingdom</a> - Test: http://142.93.208.111/<br>
-                • <a href="https://www.webpagetest.org/" target="_blank">WebPageTest</a> - Test: http://142.93.208.111/<br>
-                <br><strong>After CDN setup, test your domain from same tools!</strong>
-            `;
-        }
-        
-        // Test All Servers Function
-        async function testAllServers() {
-            const testButton = document.querySelector('button[onclick="testAllServers()"]');
-            testButton.innerHTML = '⏳ Testing All Servers...';
-            testButton.disabled = true;
-            
-            const tests = [
-                { id: 'direct-http', url: 'http://142.93.208.111/', name: 'Direct HTTP' },
-                { id: 'direct-https', url: 'https://142.93.208.111/', name: 'Direct HTTPS' },
-                { id: 'vergecloud-http', url: 'http://test-verge-test.shop/', name: 'VergeCloud HTTP' },
-                { id: 'vergecloud-https', url: 'https://test-verge-test.shop/', name: 'VergeCloud HTTPS' },
-                { id: 'arvancloud-http', url: 'http://test20250316.ir/', name: 'ArvanCloud CDN HTTP' },
-                { id: 'arvancloud-https', url: 'https://test20250316.ir/', name: 'ArvanCloud CDN HTTPS' }
+
+        async function runTests(testType, rounds, delay) {
+            const endpoints = getEndpoints(testType);
+            const providers = [
+                { id: 'direct', name: 'Direct', url: 'https://142.93.208.111' },
+                { id: 'verge', name: 'VergeCloud', url: 'https://test-verge-test.shop' },
+                { id: 'arvan', name: 'ArvanCloud', url: 'https://test20250316.ir' }
             ];
-            
-            const results = {};
+
+            const times = { direct: [], verge: [], arvan: [] };
+            const scores = { direct: 0, verge: 0, arvan: 0 };
+            let totalTests = endpoints.length * providers.length * rounds;
             let completedTests = 0;
-            
-            // Run all tests truly simultaneously with individual timing
-            const promises = tests.map(async (test) => {
-                const testStartTime = performance.now();
-                
-                try {
-                    const response = await fetch(test.url, { 
-                        mode: 'no-cors',
-                        method: 'HEAD',
-                        cache: 'no-cache'
-                    });
-                    
-                    const testEndTime = performance.now();
-                    const responseTime = Math.round(testEndTime - testStartTime);
-                    
-                    results[test.id] = { time: responseTime, status: 'success', name: test.name };
-                    
-                    // Update individual result immediately
-                    const resultDiv = document.getElementById(test.id + '-result');
-                    if (resultDiv) {
-                        resultDiv.style.display = 'block';
-                        resultDiv.innerHTML = `
-                            <strong>✅ Response Time:</strong> ${responseTime}ms<br>
-                            <strong>📍 Status:</strong> Connected (Individual timing)<br>
-                            <strong>🕐 Tested:</strong> ${new Date().toLocaleTimeString()}
-                        `;
-                        resultDiv.style.background = '#e8f5e8';
-                    }
-                    
-                } catch (error) {
-                    const testEndTime = performance.now();
-                    const responseTime = Math.round(testEndTime - testStartTime);
-                    
-                    results[test.id] = { time: responseTime, status: 'error', error: error.message, name: test.name };
-                    
-                    // Update individual result immediately
-                    const resultDiv = document.getElementById(test.id + '-result');
-                    if (resultDiv) {
-                        resultDiv.style.display = 'block';
-                        resultDiv.innerHTML = `
-                            <strong>⚠️ Response Time:</strong> ${responseTime}ms<br>
-                            <strong>📍 Status:</strong> ${error.message}<br>
-                            <strong>🕐 Tested:</strong> ${new Date().toLocaleTimeString()}
-                        `;
-                        resultDiv.style.background = '#fff3cd';
+
+            const resultsTable = document.getElementById('resultsTable');
+            resultsTable.innerHTML = '';
+
+            // Initialize results table
+            for (const endpoint of endpoints) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="endpoint">${endpoint.name}</td>
+                    <td class="status" id="direct-${endpoint.id}"><span class="status-indicator loading">⏳</span></td>
+                    <td class="status" id="verge-${endpoint.id}"><span class="status-indicator loading">⏳</span></td>
+                    <td class="status" id="arvan-${endpoint.id}"><span class="status-indicator loading">⏳</span></td>
+                `;
+                resultsTable.appendChild(row);
+            }
+
+            // Run tests
+            for (let round = 0; round < rounds; round++) {
+                for (const endpoint of endpoints) {
+                    for (const provider of providers) {
+                        const url = provider.url + endpoint.path;
+                        const start = Date.now();
+                        const success = await testEndpoint(url);
+                        const duration = Date.now() - start;
+
+                        if (success) {
+                            times[provider.id].push(duration);
+                            scores[provider.id]++;
+                            document.getElementById(`${provider.id}-${endpoint.id}`).innerHTML = '<span class="status-indicator success">✅</span>';
+                        } else {
+                            document.getElementById(`${provider.id}-${endpoint.id}`).innerHTML = '<span class="status-indicator error">❌</span>';
+                        }
+
+                        completedTests++;
+                        const progress = Math.round((completedTests / totalTests) * 100);
+                        document.getElementById('progressBar').style.width = progress + '%';
+                        document.getElementById('progressText').textContent = progress + '%';
+                        document.getElementById('statusMessage').textContent = `🔄 Testing ${endpoint.name} on ${provider.name}... (${completedTests}/${totalTests})`;
                     }
                 }
-            });
-            
-            // Wait for all tests to complete
-            await Promise.all(promises);
-            
-            // Show comparison summary
-            showComparisonSummary(results);
-            
-            // Reset button
-            testButton.innerHTML = '🚀 Test All Servers (HTTP & HTTPS)';
-            testButton.disabled = false;
-        }
-        
-        function showComparisonSummary(results) {
-            const summaryDiv = document.getElementById('comparison-summary');
-            const contentDiv = document.getElementById('summary-content');
-            
-            // Sort results by response time
-            const sortedResults = Object.entries(results)
-                .filter(([_, result]) => result.status === 'success')
-                .sort(([_, a], [__, b]) => a.time - b.time);
-            
-            let summaryHTML = '<table style="width: 100%; border-collapse: collapse;">';
-            summaryHTML += '<tr style="background: #f0f0f0;"><th style="padding: 8px; border: 1px solid #ddd;">Rank</th><th style="padding: 8px; border: 1px solid #ddd;">Server</th><th style="padding: 8px; border: 1px solid #ddd;">Protocol</th><th style="padding: 8px; border: 1px solid #ddd;">Response Time</th><th style="padding: 8px; border: 1px solid #ddd;">Performance</th></tr>';
-            
-            sortedResults.forEach(([testId, result], index) => {
-                const [server, protocol] = testId.split('-');
-                const serverName = server === 'direct' ? '🖥️ Direct Server' : 
-                                 server === 'cloudflare' ? '☁️ Cloudflare CDN' : 
-                                 server === 'arvancloud' ? '☁️ ArvanCloud CDN' : '🌐 VergeCloud CDN';
-                const protocolName = protocol.toUpperCase();
-                const performance = index === 0 ? '🥇 Fastest' : 
-                                  index === 1 ? '🥈 Second' : 
-                                  index === 2 ? '🥉 Third' : `#${index + 1}`;
-                
-                summaryHTML += `<tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${index + 1}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">${serverName}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${protocolName}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;"><strong>${result.time}ms</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${performance}</td>
-                </tr>`;
-            });
-            
-            summaryHTML += '</table>';
-            
-            // Add failed tests
-            const failedTests = Object.entries(results).filter(([_, result]) => result.status === 'error');
-            if (failedTests.length > 0) {
-                summaryHTML += '<br><strong>❌ Failed Tests:</strong><br>';
-                failedTests.forEach(([testId, result]) => {
-                    const [server, protocol] = testId.split('-');
-                    const serverName = server === 'direct' ? 'Direct Server' : 
-                                     server === 'cloudflare' ? 'Cloudflare CDN' : 
-                                     server === 'arvancloud' ? 'ArvanCloud CDN' : 'VergeCloud CDN';
-                    summaryHTML += `• ${serverName} (${protocol.toUpperCase()}): ${result.error}<br>`;
-                });
+
+                if (round < rounds - 1) {
+                    await new Promise(r => setTimeout(r, delay * 1000));
+                }
             }
-            
-            contentDiv.innerHTML = summaryHTML;
-            summaryDiv.style.display = 'block';
+
+            // Update scores
+            const totalPerProvider = endpoints.length * rounds;
+            document.getElementById('directScore').textContent = `${scores.direct}/${totalPerProvider}`;
+            document.getElementById('vergeScore').textContent = `${scores.verge}/${totalPerProvider}`;
+            document.getElementById('arvanScore').textContent = `${scores.arvan}/${totalPerProvider}`;
+
+            document.getElementById('statusMessage').innerHTML = '<span class="status-indicator success">✅ All tests completed!</span>';
+
+            // Check for issues
+            const issues = [];
+            if (scores.verge < totalPerProvider * 0.7) {
+                issues.push('VergeCloud: Multiple tests failing - check configuration');
+            }
+            if (scores.arvan < totalPerProvider * 0.7) {
+                issues.push('ArvanCloud: Multiple tests failing - check configuration');
+            }
+
+            const issuesSection = document.getElementById('issuesSection');
+            const issuesList = document.getElementById('issuesList');
+            if (issues.length > 0) {
+                issuesList.innerHTML = issues.map(i => `<li>${i}</li>`).join('');
+                issuesSection.classList.add('active');
+            } else {
+                issuesSection.classList.remove('active');
+            }
+        }
+
+        async function testEndpoint(url) {
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache'
+                });
+                return response.ok;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function getEndpoints(testType) {
+            const all = [
+                { id: 'root', name: 'Root Page', path: '/' },
+                { id: 'large', name: 'Large File', path: '/large-probe.txt' },
+                { id: 'small', name: 'Small File', path: '/probe.txt' },
+                { id: 'cache-time', name: 'Cache Headers', path: '/api/time' },
+                { id: 'cache-bypass', name: 'Cache Bypass', path: '/cache/bypass/nocache' },
+                { id: 'sql', name: 'Security - SQL', path: '/security/sql/union' },
+                { id: 'xss', name: 'Security - XSS', path: '/security/xss/script' },
+                { id: 'redirect', name: 'Redirect 301', path: '/redirect/301' }
+            ];
+
+            if (testType === 'performance') {
+                return all.filter(e => ['root', 'large', 'small'].includes(e.id));
+            } else if (testType === 'caching') {
+                return all.filter(e => ['cache-time', 'cache-bypass'].includes(e.id));
+            } else if (testType === 'security') {
+                return all.filter(e => ['sql', 'xss'].includes(e.id));
+            } else {
+                return all;
+            }
         }
     </script>
 </body>
