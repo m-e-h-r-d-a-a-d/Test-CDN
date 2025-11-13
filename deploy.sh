@@ -49,18 +49,8 @@ rsync_cmd \
   --exclude "**/.DS_Store" \
   ./ ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/
 
-# If VergeCloud origin cert/key provided, install them as nginx server cert/key
-ssh_cmd ${REMOTE_USER}@${REMOTE_HOST} "cd ${REMOTE_DIR} && \
-  if ls vergecloud-edge/origin/*.crt >/dev/null 2>&1 && ls vergecloud-edge/origin/*.key >/dev/null 2>&1; then \
-    echo '[info] Installing provided origin certificate/key to nginx/ssl as server.crt/server.key'; \
-    sudo mkdir -p nginx/ssl; \
-    crt=\$(ls vergecloud-edge/origin/*.crt | head -n1); \
-    key=\$(ls vergecloud-edge/origin/*.key | head -n1); \
-    cp \"$crt\" nginx/ssl/server.crt; \
-    cp \"$key\" nginx/ssl/server.key; \
-  else \
-    echo '[info] No origin cert/key found under vergecloud-edge/origin; keeping existing nginx/ssl certs'; \
-  fi"
+# Note: Using self-signed certificates for origin. VergeCloud origin certs removed per user request.
+echo '[info] Using self-signed certificates for origin SSL'
 
 # Start/Restart docker-compose stack
 ssh_cmd ${REMOTE_USER}@${REMOTE_HOST} "cd ${REMOTE_DIR} && (docker compose down || docker-compose down || true) && (docker compose up -d || docker-compose up -d)"
