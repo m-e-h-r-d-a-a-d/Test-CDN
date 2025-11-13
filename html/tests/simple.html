@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple CDN Test Runner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-4xl mx-auto p-6">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">🧪 Simple Test Runner</h1>
+            <a href="../index.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
+                ← Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Main Control Panel -->
+        <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Test Configuration</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Number of Rounds</label>
+                    <input id="rounds" type="number" value="3" min="1" max="10" 
+                           class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none" />
+                    <p class="text-xs text-gray-600 mt-1">How many times to run each test</p>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Delay Between Tests (seconds)</label>
+                    <input id="delay" type="number" value="2" min="0" max="10" step="0.5"
+                           class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none" />
+                    <p class="text-xs text-gray-600 mt-1">Wait time between test rounds</p>
+                </div>
+            </div>
+
+            <!-- Test Type Selection -->
+            <div class="mb-8">
+                <label class="block text-gray-700 font-semibold mb-3">Select Test Type</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                        <input type="radio" name="testType" value="performance" checked class="w-5 h-5 text-blue-600" />
+                        <span class="ml-3">
+                            <span class="font-bold text-gray-800">⚡ Performance</span>
+                            <p class="text-sm text-gray-600">Speed & response time</p>
+                        </span>
+                    </label>
+
+                    <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                        <input type="radio" name="testType" value="caching" class="w-5 h-5 text-blue-600" />
+                        <span class="ml-3">
+                            <span class="font-bold text-gray-800">💾 Caching</span>
+                            <p class="text-sm text-gray-600">Cache behavior & headers</p>
+                        </span>
+                    </label>
+
+                    <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                        <input type="radio" name="testType" value="security" class="w-5 h-5 text-blue-600" />
+                        <span class="ml-3">
+                            <span class="font-bold text-gray-800">🔒 Security</span>
+                            <p class="text-sm text-gray-600">WAF & security rules</p>
+                        </span>
+                    </label>
+
+                    <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                        <input type="radio" name="testType" value="all" class="w-5 h-5 text-blue-600" />
+                        <span class="ml-3">
+                            <span class="font-bold text-gray-800">🚀 All Tests</span>
+                            <p class="text-sm text-gray-600">Complete test suite</p>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Run Button -->
+            <button onclick="startTests()" id="runBtn"
+                    class="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-bold text-xl py-4 rounded-lg shadow-lg transform hover:scale-105 transition-all">
+                ▶️ START TESTS
+            </button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="bg-white rounded-xl shadow-lg p-8" style="display: none;">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">📊 Test Results</h2>
+
+            <!-- Progress Bar -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-gray-700 font-semibold">Progress</span>
+                    <span id="progressText" class="text-gray-600">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div id="progressBar" class="bg-gradient-to-r from-green-500 to-blue-600 h-3 transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Status Message -->
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                <p id="statusMessage" class="text-blue-800 font-medium">Starting tests...</p>
+            </div>
+
+            <!-- Results Table -->
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-gray-100 border-b-2 border-gray-300">
+                            <th class="px-4 py-3 text-left font-bold text-gray-800">Endpoint</th>
+                            <th class="px-4 py-3 text-center font-bold text-gray-800">Direct</th>
+                            <th class="px-4 py-3 text-center font-bold text-gray-800">VergeCloud</th>
+                            <th class="px-4 py-3 text-center font-bold text-gray-800">ArvanCloud</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTable">
+                        <!-- Results will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-blue-50 rounded-lg p-4 border-2 border-blue-300">
+                    <div class="text-2xl font-bold text-blue-800">🖥️ Direct</div>
+                    <div class="text-xs text-blue-600 mt-2">Avg: <span id="directAvg">-</span>ms</div>
+                </div>
+                <div class="bg-green-50 rounded-lg p-4 border-2 border-green-300">
+                    <div class="text-2xl font-bold text-green-800">🌐 VergeCloud</div>
+                    <div class="text-xs text-green-600 mt-2">Avg: <span id="vergeAvg">-</span>ms</div>
+                </div>
+                <div class="bg-purple-50 rounded-lg p-4 border-2 border-purple-300">
+                    <div class="text-2xl font-bold text-purple-800">☁️ ArvanCloud</div>
+                    <div class="text-xs text-purple-600 mt-2">Avg: <span id="arvanAvg">-</span>ms</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4">
+                <button onclick="startTests()" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition">
+                    🔄 Run Again
+                </button>
+                <button onclick="window.location.href='../index.html'" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition">
+                    🏠 Back to Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function startTests() {
+            const rounds = parseInt(document.getElementById('rounds').value) || 1;
+            const delay = parseFloat(document.getElementById('delay').value) || 1;
+            const testType = document.querySelector('input[name="testType"]:checked').value;
+
+            const runBtn = document.getElementById('runBtn');
+            const resultsSection = document.getElementById('resultsSection');
+
+            // Disable button and show results
+            runBtn.disabled = true;
+            runBtn.style.opacity = '0.5';
+            resultsSection.style.display = 'block';
+
+            try {
+                await runTests(testType, rounds, delay);
+            } finally {
+                runBtn.disabled = false;
+                runBtn.style.opacity = '1';
+            }
+        }
+
+        async function runTests(testType, rounds, delay) {
+            const endpoints = getEndpoints(testType);
+            const providers = [
+                { id: 'direct', name: 'Direct', url: 'https://142.93.208.111' },
+                { id: 'verge', name: 'VergeCloud', url: 'https://test-verge-test.shop' },
+                { id: 'arvan', name: 'ArvanCloud', url: 'https://test20250316.ir' }
+            ];
+
+            const results = {};
+            const times = { direct: [], verge: [], arvan: [] };
+            let totalTests = endpoints.length * providers.length * rounds;
+            let completedTests = 0;
+
+            // Initialize results table
+            const resultsTable = document.getElementById('resultsTable');
+            resultsTable.innerHTML = '';
+
+            for (const endpoint of endpoints) {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-200 hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-4 py-3 font-mono text-sm text-gray-800">${endpoint.name}</td>
+                    <td class="px-4 py-3 text-center text-2xl" id="direct-${endpoint.id}">⏳</td>
+                    <td class="px-4 py-3 text-center text-2xl" id="verge-${endpoint.id}">⏳</td>
+                    <td class="px-4 py-3 text-center text-2xl" id="arvan-${endpoint.id}">⏳</td>
+                `;
+                resultsTable.appendChild(row);
+            }
+
+            // Run tests
+            for (let round = 0; round < rounds; round++) {
+                for (const endpoint of endpoints) {
+                    for (const provider of providers) {
+                        const url = provider.url + endpoint.path;
+                        const start = Date.now();
+                        const success = await testEndpoint(url);
+                        const duration = Date.now() - start;
+
+                        if (success) {
+                            times[provider.id].push(duration);
+                            document.getElementById(`${provider.id}-${endpoint.id}`).textContent = '✅';
+                        } else {
+                            document.getElementById(`${provider.id}-${endpoint.id}`).textContent = '❌';
+                        }
+
+                        completedTests++;
+                        const progress = Math.round((completedTests / totalTests) * 100);
+                        document.getElementById('progressBar').style.width = progress + '%';
+                        document.getElementById('progressText').textContent = progress + '%';
+                        document.getElementById('statusMessage').textContent = `Testing ${endpoint.name} on ${provider.name}...`;
+                    }
+                }
+
+                if (round < rounds - 1) {
+                    await new Promise(r => setTimeout(r, delay * 1000));
+                }
+            }
+
+            // Update averages
+            document.getElementById('directAvg').textContent = times.direct.length > 0 ? Math.round(times.direct.reduce((a, b) => a + b) / times.direct.length) : '-';
+            document.getElementById('vergeAvg').textContent = times.verge.length > 0 ? Math.round(times.verge.reduce((a, b) => a + b) / times.verge.length) : '-';
+            document.getElementById('arvanAvg').textContent = times.arvan.length > 0 ? Math.round(times.arvan.reduce((a, b) => a + b) / times.arvan.length) : '-';
+
+            document.getElementById('statusMessage').innerHTML = '<span class="text-green-700 font-bold">✅ All tests completed!</span>';
+        }
+
+        async function testEndpoint(url) {
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache'
+                });
+                return response.ok;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function getEndpoints(testType) {
+            const all = [
+                { id: 'root', name: 'Root Page', path: '/' },
+                { id: 'large', name: 'Large File', path: '/large-probe.txt' },
+                { id: 'small', name: 'Small File', path: '/probe.txt' },
+                { id: 'cache-time', name: 'Cache Headers', path: '/api/time' },
+                { id: 'cache-bypass', name: 'Cache Bypass', path: '/cache/bypass/nocache' },
+                { id: 'sql', name: 'Security - SQL', path: '/security/sql/union' },
+                { id: 'xss', name: 'Security - XSS', path: '/security/xss/script' },
+                { id: 'redirect', name: 'Redirect 301', path: '/redirect/301' }
+            ];
+
+            if (testType === 'performance') {
+                return all.filter(e => ['root', 'large', 'small'].includes(e.id));
+            } else if (testType === 'caching') {
+                return all.filter(e => ['cache-time', 'cache-bypass'].includes(e.id));
+            } else if (testType === 'security') {
+                return all.filter(e => ['sql', 'xss'].includes(e.id));
+            } else {
+                return all;
+            }
+        }
+    </script>
+</body>
+</html>
+
