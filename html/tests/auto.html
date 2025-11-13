@@ -53,6 +53,8 @@
                     <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="cachekey"> Cache Key Variants</label>
                     <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="rate"> Rate Limiting</label>
                     <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="geo"> Geo Capture</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="cache-adv"> Advanced Caching</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="security"> Security/WAF</label>
                 </div>
                 <div class="flex gap-3 flex-wrap">
                     <button id="runSelected" class="px-4 py-2 bg-emerald-700 text-white rounded">Run Selected</button>
@@ -467,7 +469,7 @@
         // Presets and Run Selected
         const presetMap = {
             performance: ['compression','protocol','range'],
-            validation: ['cache','stale','cachekey'],
+            validation: ['cache','stale','cachekey','cache-adv','security'],
             'cdn-rules': ['api','rate','geo']
         };
         document.querySelectorAll('[data-preset]').forEach(btn=> btn.addEventListener('click', ()=>{
@@ -485,6 +487,8 @@
                 if (s==='range') await runRange();
                 if (s==='stale') await runStale();
                 if (s==='cachekey') await runCacheKey();
+                if (s==='cache-adv') await runAdvancedCaching();
+                if (s==='security') await runSecurityTests();
                 if (s==='rate') await runRateBurst();
                 if (s==='geo') await runGeo();
             }
@@ -547,6 +551,147 @@
             }
         }
         document.getElementById('geoBtn') && document.getElementById('geoBtn').addEventListener('click', runGeo);
+
+        // Advanced Caching Tests for VergeCloud
+        async function runAdvancedCaching(){
+            const bases = ['https://test-verge-test.shop/', 'https://test20250316.ir/'];
+            const roundNo = ++round;
+            document.getElementById('status').textContent = `Advanced caching tests ${roundNo}...`;
+
+            const testUrls = [
+                // Cache key variants
+                '/cache/key-variant',
+                '/cache/key-variant/mobile',
+                '/cache/key-variant/desktop',
+                // Query string tests
+                '/cache/query-ignore?param=test&another=value',
+                '/cache/query-include?param=test&another=value',
+                // Cookie tests (simulate different cookies)
+                '/cache/cookie-test',
+                // User-Agent tests
+                '/cache/ua-test',
+                // Cache bypass tests
+                '/cache/bypass/nocache',
+                '/cache/bypass/private',
+                // Dynamic content
+                '/cache/dynamic'
+            ];
+
+            const tests = [];
+            for (const base of bases) {
+                for (const testUrl of testUrls) {
+                    const fullUrl = base + testUrl + (testUrl.includes('?') ? '&' : '?') + '_t=' + Date.now();
+                    tests.push({ url: fullUrl, base, endpoint: testUrl });
+                }
+            }
+
+            await Promise.all(tests.map(async t => {
+                const t0 = nowMs();
+                try {
+                    const response = await fetch(t.url, {
+                        mode: 'cors',
+                        cache: 'no-cache',
+                        headers: {
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+                    const cacheKey = response.headers.get('X-Cache-Key') || 'unknown';
+                    const cacheControl = response.headers.get('Cache-Control') || 'none';
+                    appendRow(roundNo, t.url, 'GET', nowMs()-t0, `OK (Key:${cacheKey}, CC:${cacheControl})`);
+                } catch(e) {
+                    appendRow(roundNo, t.url, 'GET', nowMs()-t0, 'ERR');
+                }
+            }));
+
+            document.getElementById('status').textContent = `Advanced caching tests ${roundNo} done`;
+        }
+
+        // Security & WAF Tests for VergeCloud
+        async function runSecurityTests(){
+            const bases = ['https://test-verge-test.shop/', 'https://test20250316.ir/'];
+            const roundNo = ++round;
+            document.getElementById('status').textContent = `Security/WAF tests ${roundNo}...`;
+
+            const testUrls = [
+                // SQL injection attempts
+                '/security/sql/union',
+                '/security/sql/dump',
+                // XSS attempts
+                '/security/xss/script',
+                '/security/xss/img',
+                // Path traversal
+                '/security/traversal/etc',
+                '/security/traversal/parent',
+                // Command injection
+                '/security/cmd/exec',
+                // Bot detection
+                '/security/bot/bad-ua',
+                // Rate limiting
+                '/security/rate-test',
+                // Admin access
+                '/security/suspicious/admin',
+                '/security/suspicious/wp-admin',
+                // Header injection
+                '/security/header/crlf'
+            ];
+
+            const maliciousUserAgents = [
+                'sqlmap/1.0',
+                'nikto',
+                'dirbuster',
+                'acunetix',
+                'nessus',
+                'masscan',
+                'zgrab'
+            ];
+
+            const tests = [];
+            for (const base of bases) {
+                for (const testUrl of testUrls) {
+                    const fullUrl = base + testUrl + '?_t=' + Date.now();
+                    tests.push({ url: fullUrl, endpoint: testUrl, ua: null });
+
+                    // Add bot detection tests with malicious UAs
+                    if (testUrl === '/security/bot/bad-ua') {
+                        for (const ua of maliciousUserAgents) {
+                            tests.push({ url: fullUrl, endpoint: testUrl, ua: ua });
+                        }
+                    }
+                }
+            }
+
+            await Promise.all(tests.map(async t => {
+                const t0 = nowMs();
+                try {
+                    const headers = { 'Cache-Control': 'no-cache' };
+                    if (t.ua) headers['User-Agent'] = t.ua;
+
+                    const response = await fetch(t.url, {
+                        mode: 'cors',
+                        cache: 'no-cache',
+                        headers: headers
+                    });
+
+                    const testType = response.headers.get('X-Test-Type') || 'unknown';
+                    const status = response.status;
+                    const shouldBeBlocked = testType !== 'unknown'; // If we get our custom header, it reached origin
+
+                    let result = `OK (Status:${status}, Type:${testType})`;
+                    if (shouldBeBlocked && status < 400) {
+                        result += ' ⚠️ WAF NOT BLOCKING';
+                    } else if (shouldBeBlocked && status >= 400) {
+                        result += ' ✅ WAF BLOCKED';
+                    }
+
+                    appendRow(roundNo, t.url + (t.ua ? ` [UA:${t.ua}]` : ''), 'GET', nowMs()-t0, result);
+                } catch(e) {
+                    // Network errors might indicate WAF blocking
+                    appendRow(roundNo, t.url + (t.ua ? ` [UA:${t.ua}]` : ''), 'GET', nowMs()-t0, 'BLOCKED (Network Error)');
+                }
+            }));
+
+            document.getElementById('status').textContent = `Security/WAF tests ${roundNo} done`;
+        }
 
         function start() {
             if (timer) return;
