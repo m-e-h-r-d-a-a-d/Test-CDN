@@ -227,7 +227,18 @@
 
             const times = { direct: [], verge: [], arvan: [] };
             const scores = { direct: 0, verge: 0, arvan: 0 };
-            let totalTests = endpoints.length * providers.length * rounds;
+
+            // Calculate total tests correctly
+            let totalTests = 0;
+            for (const endpoint of endpoints) {
+                if (endpoint.category === 'api') {
+                    // API tests count as 3 tests (Direct + 2 providers)
+                    totalTests += 3 * rounds;
+                } else {
+                    // Regular tests count as 3 tests per provider
+                    totalTests += providers.length * rounds;
+                }
+            }
             let completedTests = 0;
 
             const resultsTable = document.getElementById('resultsTable');
@@ -278,8 +289,8 @@
                             document.getElementById(`direct-${endpoint.id}`).innerHTML = '<span class="status-indicator success" title="API test successful">✅</span>';
 
                             // Mark both providers based on API results
-                            const vergeSuccess = result.apiResults.find(r => r.provider === 'vergecloud')?.success;
-                            const arvanSuccess = result.apiResults.find(r => r.provider === 'arvancloud')?.success;
+                            const vergeSuccess = result.apiResults?.find(r => r.provider === 'vergecloud')?.success;
+                            const arvanSuccess = result.apiResults?.find(r => r.provider === 'arvancloud')?.success;
 
                             if (vergeSuccess) {
                                 scores.verge++;
@@ -302,6 +313,7 @@
                         }
 
                         completedTests += 3; // Count as testing all 3 providers
+                        document.getElementById('statusMessage').textContent = `🔌 Testing ${endpoint.name} API... (${completedTests}/${totalTests})`;
                     } else {
                         // Regular tests - one per provider
                         for (const provider of providers) {
@@ -328,18 +340,13 @@
                             }
 
                             completedTests++;
+                            document.getElementById('statusMessage').textContent = `🔄 Testing ${endpoint.name} on ${provider.name}... (${completedTests}/${totalTests})`;
                         }
                     }
 
                     const progress = Math.round((completedTests / totalTests) * 100);
                     document.getElementById('progressBar').style.width = progress + '%';
                     document.getElementById('progressText').textContent = progress + '%';
-
-                    if (testType === 'api') {
-                        document.getElementById('statusMessage').textContent = `🔌 Testing ${endpoint.name} API... (${completedTests}/${totalTests})`;
-                    } else {
-                        document.getElementById('statusMessage').textContent = `🔄 Testing ${endpoint.name}... (${completedTests}/${totalTests})`;
-                    }
                 }
 
                 if (round < rounds - 1) {
