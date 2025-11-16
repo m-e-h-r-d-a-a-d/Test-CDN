@@ -11,3 +11,6 @@ vergecloud-edge/**/*.key
 vergecloud-edge/**/*.crt
 vergecloud-edge/**/*.pem
 vergecloud-edge/**/*.cer
+
+# Test reports (generated files)
+Report/
