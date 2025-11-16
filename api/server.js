@@ -62,7 +62,7 @@ app.post('/purge', async (req, res) => {
       if (!api) return res.status(400).json({ error: 'VERGE_API_BASE must be set on server' });
       const resp = await fetch(`${api}/purge`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: { 'X-API-Key': token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain, files: [url] })
       });
       out = { status: resp.status, data: await safeJson(resp) };
