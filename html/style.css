@@ -383,6 +383,11 @@ body {
     color: #4CAF50;
 }
 
+.status-indicator.security {
+    color: #FF9800;
+    font-weight: bold;
+}
+
 .status-indicator.error {
     color: #f44336;
 }
@@ -428,6 +433,10 @@ body {
 
 .legend-box.success {
     background: #4CAF50;
+}
+
+.legend-box.security {
+    background: #FF9800;
 }
 
 .legend-box.warning {
