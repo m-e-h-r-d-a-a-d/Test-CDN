@@ -50,7 +50,7 @@ app.post('/purge', async (req, res) => {
       const endpoint = `${base.replace(/\/$/, '')}/domains/${encodeURIComponent(domain)}/caching/purge`;
       const resp = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+        headers: { 'Authorization': `apikey ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ purge: 'individual', purge_urls: [url] })
       });
       out = { status: resp.status, data: await safeJson(resp) };
@@ -86,7 +86,7 @@ app.get('/arvan/ssl/:domain', async (req, res) => {
 
     const resp = await fetch(`${base.replace(/\/$/, '')}/domains/${encodeURIComponent(domain)}/ssl`, {
       method: 'GET',
-      headers: { 'Authorization': token }
+      headers: { 'Authorization': `apikey ${token}` }
     });
     const data = await safeJson(resp);
     res.status(resp.status).json(data);
@@ -104,7 +104,7 @@ app.get('/arvan/ssl/:domain/certificates', async (req, res) => {
 
     const resp = await fetch(`${base.replace(/\/$/, '')}/domains/${encodeURIComponent(domain)}/ssl/certificates`, {
       method: 'GET',
-      headers: { 'Authorization': token }
+      headers: { 'Authorization': `apikey ${token}` }
     });
     const data = await safeJson(resp);
     res.status(resp.status).json(data);
@@ -122,7 +122,7 @@ app.delete('/arvan/ssl/:domain/certificates/:certId', async (req, res) => {
 
     const resp = await fetch(`${base.replace(/\/$/, '')}/domains/${encodeURIComponent(domain)}/ssl/certificates/${certId}`, {
       method: 'DELETE',
-      headers: { 'Authorization': token }
+      headers: { 'Authorization': `apikey ${token}` }
     });
     const data = await safeJson(resp);
     res.status(resp.status).json(data);
@@ -141,7 +141,7 @@ app.get('/arvan/caching/:domain', async (req, res) => {
 
     const resp = await fetch(`${base.replace(/\/$/, '')}/domains/${encodeURIComponent(domain)}/caching`, {
       method: 'GET',
-      headers: { 'Authorization': token }
+      headers: { 'Authorization': `apikey ${token}` }
     });
     const data = await safeJson(resp);
     res.status(resp.status).json(data);
@@ -160,7 +160,7 @@ app.patch('/arvan/caching/:domain', async (req, res) => {
     const resp = await fetch(`${base.replace(/\/$/, '')}/domains/${encodeURIComponent(domain)}/caching`, {
       method: 'PATCH',
       headers: {
-        'Authorization': token,
+        'Apikey': token,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(req.body)
@@ -182,7 +182,7 @@ app.get('/arvan/firewall/:domain', async (req, res) => {
 
     const resp = await fetch(`${base.replace(/\/$/, '')}/domains/${encodeURIComponent(domain)}/firewall/settings`, {
       method: 'GET',
-      headers: { 'Authorization': token }
+      headers: { 'Authorization': `apikey ${token}` }
     });
     const data = await safeJson(resp);
     res.status(resp.status).json(data);
