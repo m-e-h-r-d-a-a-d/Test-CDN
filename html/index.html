@@ -173,6 +173,9 @@
                         <button class="btn btn-primary" onclick="location.reload()">
                             🔄 Test Again
                         </button>
+                        <button class="btn btn-info" id="exportBtn" onclick="exportTestReport()" style="display: none;">
+                            📊 Export Report
+                        </button>
                         <button class="btn btn-secondary" onclick="document.getElementById('resultsSection').classList.remove('active'); document.getElementById('progressSection').style.display='none';">
                             ◀ Back
                         </button>
@@ -221,6 +224,10 @@
         }
 
         async function runTests(testType, rounds, delay) {
+            // Clear previous results
+            window.testResults = [];
+            document.getElementById('exportBtn').style.display = 'none';
+
             const endpoints = getEndpoints(testType);
             const providers = [
                 { id: 'direct', name: 'Direct', url: 'https://142.93.208.111' },
@@ -286,6 +293,9 @@
 
             document.getElementById('statusMessage').innerHTML = '<span class="status-indicator success">✅ All tests completed!</span>';
 
+            // Show export button
+            document.getElementById('exportBtn').style.display = 'inline-block';
+
             // Check for issues
             const issues = [];
             if (scores.verge < totalPerProvider * 0.7) {
@@ -307,13 +317,44 @@
 
         async function testEndpoint(url) {
             try {
+                const startTime = Date.now();
                 const response = await fetch(url, {
                     method: 'GET',
                     mode: 'cors',
                     cache: 'no-cache'
                 });
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+
+                // Store detailed result for reporting
+                const result = {
+                    url: url,
+                    status: response.status,
+                    statusText: response.statusText,
+                    duration: duration,
+                    success: response.ok,
+                    headers: Object.fromEntries(response.headers.entries())
+                };
+
+                // Add to global results array
+                if (!window.testResults) window.testResults = [];
+                window.testResults.push(result);
+
                 return response.ok;
             } catch (error) {
+                // Store error result for reporting
+                const result = {
+                    url: url,
+                    status: 'ERROR',
+                    statusText: error.message,
+                    duration: 0,
+                    success: false,
+                    error: error.message
+                };
+
+                if (!window.testResults) window.testResults = [];
+                window.testResults.push(result);
+
                 return false;
             }
         }
@@ -339,6 +380,78 @@
             } else {
                 return all;
             }
+        }
+
+        function exportTestReport() {
+            if (!window.testResults || window.testResults.length === 0) {
+                alert('No test results to export!');
+                return;
+            }
+
+            // Group results by provider
+            const groupedResults = {
+                direct: [],
+                verge: [],
+                arvan: []
+            };
+
+            window.testResults.forEach(result => {
+                if (result.url.includes('142.93.208.111')) {
+                    groupedResults.direct.push(result);
+                } else if (result.url.includes('test-verge-test.shop')) {
+                    groupedResults.verge.push(result);
+                } else if (result.url.includes('test20250316.ir')) {
+                    groupedResults.arvan.push(result);
+                }
+            });
+
+            // Generate detailed report
+            let report = `CDN Functionality Test Report\n`;
+            report += `Generated: ${new Date().toISOString()}\n\n`;
+
+            for (const [provider, results] of Object.entries(groupedResults)) {
+                const providerName = provider === 'direct' ? 'Direct' :
+                                   provider === 'verge' ? 'VergeCloud' : 'ArvanCloud';
+                const totalTests = results.length;
+                const passedTests = results.filter(r => r.success).length;
+                const failedTests = totalTests - passedTests;
+
+                report += `${providerName} Results: ${passedTests}/${totalTests} passed\n`;
+                report += `Failed Tests: ${failedTests}\n\n`;
+
+                if (failedTests > 0) {
+                    report += `FAILED TESTS:\n`;
+                    results.filter(r => !r.success).forEach(result => {
+                        report += `❌ ${result.url}\n`;
+                        report += `   Status: ${result.status} ${result.statusText}\n`;
+                        if (result.error) {
+                            report += `   Error: ${result.error}\n`;
+                        }
+                        report += `   Duration: ${result.duration}ms\n\n`;
+                    });
+                }
+
+                // Add summary stats
+                const avgDuration = results.length > 0 ?
+                    results.reduce((sum, r) => sum + r.duration, 0) / results.length : 0;
+                report += `Average Response Time: ${Math.round(avgDuration)}ms\n\n`;
+                report += `─`.repeat(50) + `\n\n`;
+            }
+
+            // Add raw data for debugging
+            report += `RAW TEST RESULTS (JSON):\n`;
+            report += JSON.stringify(window.testResults, null, 2);
+
+            // Create and download the file
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cdn-test-report-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
     </script>
 </body>

@@ -199,6 +199,16 @@ body {
     background: #e0e0e0;
 }
 
+.btn-info {
+    background: #17a2b8;
+    color: white;
+    margin-top: 10px;
+}
+
+.btn-info:hover:not(:disabled) {
+    background: #138496;
+}
+
 /* Results Section */
 .results-section {
     display: none;
