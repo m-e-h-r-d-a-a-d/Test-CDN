@@ -451,6 +451,63 @@ body {
     background: #999;
 }
 
+/* Test Description */
+.test-description {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.test-description h3 {
+    color: #495057;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+}
+
+.test-features {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 15px 0;
+    flex-wrap: wrap;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.feature-icon {
+    font-size: 1.2em;
+}
+
+/* Category Headers */
+.category-row {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.category-header {
+    padding: 12px 15px !important;
+    font-size: 1.1em !important;
+    text-align: center !important;
+    border-bottom: 2px solid #5a67d8 !important;
+}
+
+.category-header strong {
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
 /* Issues Section */
 .issues-section {
     background: #fff3e0;

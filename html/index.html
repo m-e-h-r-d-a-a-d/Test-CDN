@@ -13,7 +13,7 @@
             <h1>🚀 CDN Functionality Tester</h1>
             <p>Test all VergeCloud and ArvanCloud features with one click</p>
         </div>
-
+        
         <!-- Main Grid Layout -->
         <div class="main-grid">
             <!-- Left Column: Control Panel -->
@@ -25,67 +25,46 @@
                     <div class="form-group">
                         <label for="rounds">Number of Rounds</label>
                         <input id="rounds" type="number" value="3" min="1" max="10" />
-                    </div>
-
+        </div>
+        
                     <!-- Delay Between Tests -->
                     <div class="form-group">
                         <label for="delay">Delay Between Tests (seconds)</label>
                         <input id="delay" type="number" value="2" min="0" max="10" step="0.5" />
-                    </div>
-
-                    <!-- Test Type Selection -->
-                    <div>
-                        <label style="font-weight: 600; color: #333; margin-bottom: 12px; display: block; font-size: 14px;">Select Test Type</label>
-                        <div class="test-types">
-                            <label class="test-type-btn">
-                                <input type="radio" name="testType" value="performance" checked />
-                                <div class="test-type-info">
-                                    <h4>⚡ Performance</h4>
-                                    <p>Speed & response time</p>
-                                </div>
-                            </label>
-
-                            <label class="test-type-btn">
-                                <input type="radio" name="testType" value="caching" />
-                                <div class="test-type-info">
-                                    <h4>💾 Caching</h4>
-                                    <p>Cache behavior & headers</p>
-                                </div>
-                            </label>
-
-                            <label class="test-type-btn">
-                                <input type="radio" name="testType" value="security" />
-                                <div class="test-type-info">
-                                    <h4>🛡️ Security</h4>
-                                    <p>WAF & threat protection</p>
-                                </div>
-                            </label>
-
-                            <label class="test-type-btn">
-                                <input type="radio" name="testType" value="api" />
-                                <div class="test-type-info">
-                                    <h4>🔌 API Testing</h4>
-                                    <p>Test CDN management APIs</p>
-                                </div>
-                            </label>
-
-                            <label class="test-type-btn">
-                                <input type="radio" name="testType" value="all" />
-                                <div class="test-type-info">
-                                    <h4>🔍 All Tests</h4>
-                                    <p>Complete test suite</p>
-                                </div>
-                            </label>
+        </div>
+        
+                    <!-- Complete CDN Test Description -->
+                    <div class="test-description">
+                        <h3>🧪 Complete CDN Functionality Test</h3>
+                        <p>This comprehensive test evaluates all aspects of CDN providers:</p>
+                        <div class="test-features">
+                            <div class="feature-item">
+                                <span class="feature-icon">⚡</span>
+                                <span>Frontend Performance</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🛡️</span>
+                                <span>Security & WAF</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🔌</span>
+                                <span>API Functionality</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">📊</span>
+                                <span>Feature Comparison</span>
+                            </div>
                         </div>
-                    </div>
-
+                        <p><strong>Tests both VergeCloud and ArvanCloud to determine which features each provider actually supports.</strong></p>
+        </div>
+        
                     <!-- Run Button -->
                     <button class="btn btn-primary" onclick="startTests()" id="runBtn">
                         ▶️ START TESTS
-                    </button>
+                </button>
                 </div>
             </div>
-
+            
             <!-- Right Column: Results -->
             <div class="card">
                 <h2>📊 Results</h2>
@@ -105,7 +84,7 @@
                         <p class="status-text" id="statusMessage">🔄 Starting tests...</p>
                     </div>
                 </div>
-
+                
                 <!-- Results Section -->
                 <div id="resultsSection" class="results-section">
                     <!-- Summary Cards -->
@@ -202,7 +181,7 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- Quick Links at Bottom -->
         <div style="text-align: center; margin-top: 40px; color: white;">
             <p>📖 <a href="./tests/manual.html" style="color: white; text-decoration: underline;">Manual Testing Guide</a> • 
@@ -214,7 +193,6 @@
         async function startTests() {
             const rounds = parseInt(document.getElementById('rounds').value) || 1;
             const delay = parseFloat(document.getElementById('delay').value) || 1;
-            const testType = document.querySelector('input[name="testType"]:checked').value;
 
             const runBtn = document.getElementById('runBtn');
             const progressSection = document.getElementById('progressSection');
@@ -227,7 +205,7 @@
             resultsSection.classList.remove('active');
 
             try {
-                await runTests(testType, rounds, delay);
+                await runTests(rounds, delay);
                 resultsSection.classList.add('active');
             } finally {
                 runBtn.disabled = false;
@@ -235,12 +213,12 @@
             }
         }
 
-        async function runTests(testType, rounds, delay) {
+        async function runTests(rounds, delay) {
             // Clear previous results
             window.testResults = [];
             document.getElementById('exportBtn').style.display = 'none';
 
-            const endpoints = getEndpoints(testType);
+            const endpoints = getEndpoints();
             const providers = [
                 { id: 'direct', name: 'Direct', url: 'https://142.93.208.111' },
                 { id: 'verge', name: 'VergeCloud', url: 'https://test-verge-test.shop' },
@@ -255,8 +233,22 @@
             const resultsTable = document.getElementById('resultsTable');
             resultsTable.innerHTML = '';
 
-            // Initialize results table
+            // Initialize results table with categories
+            let currentCategory = '';
             for (const endpoint of endpoints) {
+                // Add category header if category changed
+                if (endpoint.category !== currentCategory) {
+                    currentCategory = endpoint.category;
+                    const categoryRow = document.createElement('tr');
+                    categoryRow.className = 'category-row';
+                    categoryRow.innerHTML = `
+                        <td colspan="4" class="category-header">
+                            <strong>${getCategoryDisplayName(endpoint.category)}</strong>
+                        </td>
+                    `;
+                    resultsTable.appendChild(categoryRow);
+                }
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td class="endpoint">${endpoint.name}</td>
@@ -270,7 +262,7 @@
             // Run tests
             for (let round = 0; round < rounds; round++) {
                 for (const endpoint of endpoints) {
-                    if (testType === 'api') {
+                    if (endpoint.category === 'api') {
                         // API tests work differently - one test per endpoint, tests both providers
                         const url = `https://142.93.208.111${endpoint.path}`;
                         const start = Date.now();
@@ -504,40 +496,43 @@
             }
         }
 
-        function getEndpoints(testType) {
-            const all = [
-                { id: 'root', name: 'Root Page', path: '/' },
-                { id: 'large', name: 'Large File', path: '/large-probe.txt' },
-                { id: 'small', name: 'Small File', path: '/probe.txt' },
-                { id: 'cache-time', name: 'Cache Headers', path: '/api/time' },
-                { id: 'cache-bypass', name: 'Cache Bypass', path: '/cache/bypass/nocache' },
-                { id: 'sql', name: 'Security - SQL', path: '/security/sql/union' },
-                { id: 'xss', name: 'Security - XSS', path: '/security/xss/script' },
-                { id: 'redirect', name: 'Redirect 301', path: '/redirect/301' }
+        function getCategoryDisplayName(category) {
+            const names = {
+                'performance': '⚡ Frontend Performance',
+                'caching': '💾 Caching & Headers',
+                'security': '🛡️ Security & WAF',
+                'features': '🔧 Additional Features',
+                'api': '🔌 API Functionality'
+            };
+            return names[category] || category;
+        }
+
+        function getEndpoints() {
+            // Complete test suite - frontend + security + API testing
+            const frontendEndpoints = [
+                { id: 'root', name: 'Root Page', path: '/', category: 'performance' },
+                { id: 'large', name: 'Large File', path: '/large-probe.txt', category: 'performance' },
+                { id: 'small', name: 'Small File', path: '/probe.txt', category: 'performance' },
+                { id: 'cache-time', name: 'Cache Headers', path: '/api/time', category: 'caching' },
+                { id: 'cache-bypass', name: 'Cache Bypass', path: '/cache/bypass/nocache', category: 'caching' },
+                { id: 'sql', name: 'Security - SQL', path: '/security/sql/union', category: 'security' },
+                { id: 'xss', name: 'Security - XSS', path: '/security/xss/script', category: 'security' },
+                { id: 'redirect', name: 'Redirect 301', path: '/redirect/301', category: 'features' }
             ];
 
-            // API Testing endpoints (simulated through backend proxy)
+            // API Testing endpoints for both providers
             const apiEndpoints = [
-                { id: 'api-domains', name: 'API: List Domains', path: '/api-test/domains' },
-                { id: 'api-domain-details', name: 'API: Domain Details', path: '/api-test/domain-details' },
-                { id: 'api-ssl', name: 'API: SSL Settings', path: '/api-test/ssl' },
-                { id: 'api-dns', name: 'API: DNS Records', path: '/api-test/dns' },
-                { id: 'api-caching', name: 'API: Cache Settings', path: '/api-test/caching' },
-                { id: 'api-firewall', name: 'API: Firewall Rules', path: '/api-test/firewall' },
-                { id: 'api-analytics', name: 'API: Traffic Reports', path: '/api-test/analytics' }
+                { id: 'api-domains', name: 'API: List Domains', path: '/api-test/domains', category: 'api' },
+                { id: 'api-domain-details', name: 'API: Domain Details', path: '/api-test/domain-details', category: 'api' },
+                { id: 'api-ssl', name: 'API: SSL Settings', path: '/api-test/ssl', category: 'api' },
+                { id: 'api-dns', name: 'API: DNS Records', path: '/api-test/dns', category: 'api' },
+                { id: 'api-caching', name: 'API: Cache Settings', path: '/api-test/caching', category: 'api' },
+                { id: 'api-firewall', name: 'API: Firewall Rules', path: '/api-test/firewall', category: 'api' },
+                { id: 'api-analytics', name: 'API: Traffic Reports', path: '/api-test/analytics', category: 'api' }
             ];
 
-            if (testType === 'performance') {
-                return all.filter(e => ['root', 'large', 'small'].includes(e.id));
-            } else if (testType === 'caching') {
-                return all.filter(e => ['cache-time', 'cache-bypass'].includes(e.id));
-            } else if (testType === 'security') {
-                return all.filter(e => ['sql', 'xss'].includes(e.id));
-            } else if (testType === 'api') {
-                return apiEndpoints;
-            } else {
-                return all;
-            }
+            // Return all endpoints for complete testing
+            return [...frontendEndpoints, ...apiEndpoints];
         }
 
         function exportTestReport() {

@@ -1,242 +1,176 @@
-# CDN Test Website
+# CDN Functionality Testing Suite
 
-A simple, clean website designed to test CDN features and performance with any CDN provider.
+A comprehensive testing framework for evaluating VergeCloud and ArvanCloud CDN providers. This unified platform tests both frontend performance and backend API functionality to determine which features each provider actually supports.
 
-## 🎯 Purpose
-
-This website helps you test CDN capabilities including:
-- **Caching**: Static and dynamic content caching
-- **Compression**: Gzip/Brotli compression of CSS, JS, and content
-- **Image Optimization**: WebP conversion, resizing, responsive images
-- **Performance**: Minification, HTTP/2, load times
-- **Security**: Headers, DDoS protection, WAF rules
-- **Geographic Distribution**: Edge server performance
-
-## 🏗️ Structure
+## 📁 Project Structure
 
 ```
-CDN-Test-Website/
-├── public/           # Static website files
-│   ├── index.html   # Main website
-│   └── assets/      # CSS, JS, and other assets
-├── assets/          # Test files (images, videos, documents)
-├── server.js        # Simple Node.js server
-├── package.json     # Dependencies
-├── deploy.sh        # Deployment script
-└── README.md        # This file
+Test-CDN/
+├── api/                    # Backend API server
+│   ├── server.js          # Main API server with CDN proxy endpoints
+│   └── package.json       # Node.js dependencies
+├── nginx/                 # Nginx configuration
+│   └── conf.d/
+│       └── default.conf   # Main nginx config with CDN routing
+├── html/                  # Frontend web interface
+│   ├── index.html         # Main testing dashboard (UNIFIED)
+│   ├── style.css          # Modern UI styling
+│   └── tests/             # Legacy test pages
+├── scripts/               # Testing scripts (organized)
+│   ├── *.sh              # Bash testing scripts
+│   └── *.js              # Node.js testing utilities
+├── docs/                  # Documentation
+│   └── CDN-API-Testing-Checklist.md  # Comprehensive checklist
+├── config/                # Configuration files
+├── Report/                # Test result reports (.gitignore)
+└── README.md             # This file
 ```
 
 ## 🚀 Quick Start
 
-### Local Development
-
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-2. **Start the server:**
-   ```bash
-   npm start
-   ```
-
-3. **Visit:** http://localhost:3000
-
-### Production Deployment
-
-1. **Deploy to VPS:**
-   ```bash
-   chmod +x deploy.sh
-   ./deploy.sh
-   ```
-
-2. **Configure DNS:**
-   - Point `test-verge-test.shop` to your VPS IP (`142.93.208.111`)
-
-3. **Setup CDN:**
-   - Add domain to your CDN provider
-   - Configure caching, compression, and optimization settings
-
-## 🧪 How to Test CDN Features
-
-### 1. **Before CDN Setup**
-- Visit your website directly via IP or domain
-- Use browser dev tools (F12) to check Network tab
-- Note load times and response headers
-- Look for `X-Served-By: direct-server` header
-
-### 2. **After CDN Setup**
-- Visit the same website through CDN
-- Compare load times and file sizes
-- Check for CDN-specific headers (varies by provider):
-  - `CF-Cache-Status`, `CF-Ray` (Cloudflare)
-  - `X-Cache`, `X-Served-By` (various CDNs)
-  - `Server` header changes
-
-### 3. **Test Different Sections**
-
-**🖼️ Images Section:**
-- Tests image optimization and caching
-- Check for WebP conversion
-- Monitor responsive image loading
-
-**📁 Files Section:**
-- Tests file delivery and compression
-- Download different file sizes
-- Check compression headers
-
-**🔧 API Section:**
-- Tests dynamic content caching
-- Compare cached vs uncached responses
-- Monitor cache headers
-
-**⚡ Performance Section:**
-- Tests CSS/JS minification
-- Check compression ratios
-- Monitor HTTP/2 multiplexing
-
-## 📊 What to Monitor
-
-### Browser Developer Tools
-- **Network Tab**: Load times, file sizes, cache status
-- **Performance Tab**: Page load metrics, resource timing
-- **Console**: CDN detection logs
-
-### Key Headers to Check
-- `Cache-Control`: Caching directives
-- `Content-Encoding`: Compression (gzip, brotli)
-- `Content-Type`: MIME types
-- `ETag`: Cache validation
-- `X-Cache`: CDN cache status
-- `Server`: Server/CDN identification
-
-### Performance Metrics
-- **TTFB**: Time to First Byte
-- **FCP**: First Contentful Paint
-- **LCP**: Largest Contentful Paint
-- **File Size Reduction**: Compression effectiveness
-- **Load Time Improvement**: CDN performance gain
-
-## 🌐 CDN Provider Integration
-
-This website works with any CDN provider:
-
-### Popular CDN Providers
-- **Cloudflare**: Free tier available, global network
-- **AWS CloudFront**: Pay-as-you-go, AWS integration
-- **Azure CDN**: Microsoft's global CDN
-- **Google Cloud CDN**: Google's edge network
-- **KeyCDN**: Performance-focused CDN
-- **BunnyCDN**: Cost-effective CDN
-- **Fastly**: Developer-friendly edge cloud
-
-### Setup Process (Generic)
-1. Sign up with CDN provider
-2. Add your domain to CDN dashboard
-3. Update DNS records (usually CNAME or nameservers)
-4. Configure caching rules and optimization settings
-5. Enable features like compression, minification, image optimization
-6. Test using this website
-
-## 📁 Adding Test Files
-
-To make the website fully functional, add test files to the `assets/` directory:
-
+### 1. Deploy the Application
 ```bash
-# Create directories
-mkdir -p assets/{images,files,videos}
-
-# Add your test files
-# - Small/medium/large images (JPG, PNG, WebP)
-# - Documents (PDF, DOC, TXT)
-# - Archives (ZIP, TAR)
-# - Videos (MP4, WebM)
-```
-
-See `assets/README.md` for detailed file structure.
-
-## 🔧 Customization
-
-### Adding New Test Endpoints
-Edit `server.js` to add new API endpoints:
-
-```javascript
-app.get('/api/test/custom', (req, res) => {
-  res.set('Cache-Control', 'public, max-age=3600');
-  res.json({ message: 'Custom test endpoint' });
-});
-```
-
-### Modifying Test Content
-Edit `public/index.html` to add new test sections or modify existing ones.
-
-### Styling Changes
-Edit `public/assets/css/styles.css` for visual customizations.
-
-## 🛠️ Management
-
-### Server Management
-```bash
-# Check status
-ssh ubuntu@142.93.208.111 'pm2 status'
-
-# View logs
-ssh ubuntu@142.93.208.111 'pm2 logs cdn-test-website'
-
-# Restart application
-ssh ubuntu@142.93.208.111 'pm2 restart cdn-test-website'
-
-# Update deployment
+chmod +x deploy.sh
 ./deploy.sh
 ```
 
-### Nginx Management
-```bash
-# Check nginx status
-ssh ubuntu@142.93.208.111 'sudo systemctl status nginx'
+### 2. Access the Testing Dashboard
+Open your browser to: `http://142.93.208.111`
 
-# Test nginx config
-ssh ubuntu@142.93.208.111 'sudo nginx -t'
+### 3. Run Complete CDN Test
+- Configure test rounds and delay
+- Click **"START TESTS"**
+- Watch real-time results across all categories
+- Export detailed reports
 
-# Restart nginx
-ssh ubuntu@142.93.208.111 'sudo systemctl restart nginx'
+## 🧪 What Gets Tested
+
+The unified testing system evaluates **both providers** across **5 key areas**:
+
+### ⚡ Frontend Performance
+- [ ] Root page loading
+- [ ] Large file downloads
+- [ ] Small file responses
+- [ ] HTTP status codes
+- [ ] Response times
+
+### 💾 Caching & Headers
+- [ ] Cache control headers
+- [ ] ETag validation
+- [ ] Cache bypass functionality
+- [ ] Browser caching behavior
+
+### 🛡️ Security & WAF
+- [ ] SQL injection blocking
+- [ ] XSS attack prevention
+- [ ] Security header presence
+- [ ] Threat detection accuracy
+
+### 🔧 Additional Features
+- [ ] HTTP redirects
+- [ ] Custom error pages
+- [ ] Compression support
+
+### 🔌 API Functionality
+- [ ] Domain management APIs
+- [ ] SSL certificate APIs
+- [ ] DNS record APIs
+- [ ] Caching configuration APIs
+- [ ] Firewall/WAF APIs
+- [ ] Analytics/reporting APIs
+
+## 📊 Results Interpretation
+
+### Status Indicators
+- ✅ **Green Checkmark**: Working correctly
+- 🛡️ **Orange Shield**: Blocked by security (good!)
+- ❌ **Red X**: Actually failing
+- ⏳ **Loading**: Test in progress
+
+### Provider Comparison
+After testing, you'll know:
+- Which provider has faster response times
+- Which provider has better security features
+- Which provider offers more API functionality
+- Which provider has better caching performance
+
+## 🛠️ API Testing Details
+
+The system includes backend routes that test actual CDN APIs:
+
+```javascript
+GET /api-test/domains       // Test domain listing APIs
+GET /api-test/ssl           // Test SSL certificate APIs
+GET /api-test/dns           // Test DNS management APIs
+GET /api-test/caching       // Test cache configuration APIs
+GET /api-test/firewall      // Test firewall/WAF APIs
+GET /api-test/analytics     // Test reporting APIs
 ```
 
-## 🔍 Troubleshooting
+Each API test endpoint checks **both providers simultaneously** and reports which ones are accessible and functional.
 
-### Common Issues
+## 📋 Using the Checklist
 
-1. **Site not loading**
-   - Check DNS propagation
-   - Verify nginx configuration
-   - Check firewall settings
+The comprehensive checklist (`docs/CDN-API-Testing-Checklist.md`) covers:
 
-2. **CDN not working**
-   - Verify DNS records point to CDN
-   - Check CDN dashboard for domain status
-   - Clear CDN cache if needed
+- ✅ **Authentication & API Keys**
+- 🌐 **Domain Management**
+- 🔒 **SSL/TLS Management**
+- 🔍 **DNS Management**
+- ⚡ **Caching & Performance**
+- 🛡️ **Security & Firewall**
+- 📊 **Analytics & Reporting**
+- 📝 **Logging & Monitoring**
+- 🔧 **Advanced Features**
 
-3. **Performance issues**
-   - Check server resources
-   - Monitor CDN analytics
-   - Verify optimization settings
+## 🔧 Development
 
-### Debug Commands
+### Adding New Tests
+1. Add endpoint to `getEndpoints()` in `html/index.html`
+2. Add backend route in `api/server.js` if API testing
+3. Add Nginx proxy rule if needed
+4. Update checklist documentation
+
+### Modifying Test Logic
+- Frontend logic: `html/index.html` JavaScript
+- Backend API tests: `api/server.js`
+- Styling: `html/style.css`
+
+## 📈 Reports & Analytics
+
+### Automatic Report Generation
+- Test results exported as timestamped `.txt` files
+- Detailed breakdown by provider and category
+- Performance metrics and response times
+- API functionality comparison
+
+### Manual Testing Scripts
+For advanced users, standalone scripts are available:
 ```bash
-# Check DNS resolution
-nslookup test-verge-test.shop
+# Quick API test
+./scripts/simple-api-test.sh
 
-# Test HTTP response
-curl -I http://test-verge-test.shop
+# Comprehensive API test
+./scripts/comprehensive-api-test.sh
 
-# Check server logs
-ssh ubuntu@142.93.208.111 'pm2 logs cdn-test-website --lines 50'
+# Individual provider tests
+./scripts/vergecloud-api-test.sh
+./scripts/arvancloud-api-test.sh
 ```
 
-## 📝 License
+## 🤝 Contributing
 
-MIT License - feel free to use and modify for your CDN testing needs.
+1. Test new features on both providers
+2. Update the checklist with findings
+3. Add appropriate test cases
+4. Document API differences
+
+## 📞 Support
+
+- Check the comprehensive checklist for detailed test procedures
+- Review exported reports for troubleshooting
+- Compare results between providers to identify differences
 
 ---
 
-**Ready to test your CDN? Deploy this website and start optimizing! 🚀**
+**This unified testing platform provides complete visibility into CDN provider capabilities, helping you choose the right provider for your needs.**
