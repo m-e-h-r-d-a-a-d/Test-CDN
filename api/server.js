@@ -191,6 +191,257 @@ app.get('/arvan/firewall/:domain', async (req, res) => {
   }
 });
 
+// API Testing Routes - Test actual CDN provider APIs
+app.get('/api-test/domains', async (req, res) => {
+  try {
+    const provider = req.query.provider || 'vergecloud';
+    const config = CONFIG[provider];
+
+    if (!config) {
+      return res.status(400).json({ error: 'Invalid provider' });
+    }
+
+    const endpoint = provider === 'vergecloud' ? '/v1/domains' : '/domains';
+    const url = `${config.baseUrl}${endpoint}`;
+
+    const response = await fetch(url, {
+      headers: config.headers
+    });
+
+    const data = await response.json();
+
+    res.json({
+      provider: provider,
+      endpoint: endpoint,
+      status: response.status,
+      success: response.ok,
+      data: data
+    });
+  } catch (error) {
+    res.status(500).json({
+      provider: req.query.provider || 'vergecloud',
+      error: error.message,
+      success: false
+    });
+  }
+});
+
+app.get('/api-test/domain-details', async (req, res) => {
+  try {
+    const provider = req.query.provider || 'vergecloud';
+    const config = CONFIG[provider];
+    const domain = config.domain;
+
+    if (!config) {
+      return res.status(400).json({ error: 'Invalid provider' });
+    }
+
+    const endpoint = provider === 'vergecloud' ? `/v1/domains/${domain}` : `/domains/${domain}`;
+    const url = `${config.baseUrl}${endpoint}`;
+
+    const response = await fetch(url, {
+      headers: config.headers
+    });
+
+    const data = await response.json();
+
+    res.json({
+      provider: provider,
+      endpoint: endpoint,
+      domain: domain,
+      status: response.status,
+      success: response.ok,
+      data: data
+    });
+  } catch (error) {
+    res.status(500).json({
+      provider: req.query.provider || 'vergecloud',
+      error: error.message,
+      success: false
+    });
+  }
+});
+
+app.get('/api-test/ssl', async (req, res) => {
+  try {
+    const provider = req.query.provider || 'vergecloud';
+    const config = CONFIG[provider];
+    const domain = config.domain;
+
+    if (!config) {
+      return res.status(400).json({ error: 'Invalid provider' });
+    }
+
+    const endpoint = `/domains/${domain}/ssl`;
+    const url = `${config.baseUrl}${endpoint}`;
+
+    const response = await fetch(url, {
+      headers: config.headers
+    });
+
+    const data = await response.json();
+
+    res.json({
+      provider: provider,
+      endpoint: endpoint,
+      domain: domain,
+      status: response.status,
+      success: response.ok,
+      data: data
+    });
+  } catch (error) {
+    res.status(500).json({
+      provider: req.query.provider || 'vergecloud',
+      error: error.message,
+      success: false
+    });
+  }
+});
+
+app.get('/api-test/dns', async (req, res) => {
+  try {
+    const provider = req.query.provider || 'vergecloud';
+    const config = CONFIG[provider];
+    const domain = config.domain;
+
+    if (!config) {
+      return res.status(400).json({ error: 'Invalid provider' });
+    }
+
+    const endpoint = `/domains/${domain}/dns-records`;
+    const url = `${config.baseUrl}${endpoint}`;
+
+    const response = await fetch(url, {
+      headers: config.headers
+    });
+
+    const data = await response.json();
+
+    res.json({
+      provider: provider,
+      endpoint: endpoint,
+      domain: domain,
+      status: response.status,
+      success: response.ok,
+      data: data
+    });
+  } catch (error) {
+    res.status(500).json({
+      provider: req.query.provider || 'vergecloud',
+      error: error.message,
+      success: false
+    });
+  }
+});
+
+app.get('/api-test/caching', async (req, res) => {
+  try {
+    const provider = req.query.provider || 'vergecloud';
+    const config = CONFIG[provider];
+    const domain = config.domain;
+
+    if (!config) {
+      return res.status(400).json({ error: 'Invalid provider' });
+    }
+
+    const endpoint = `/domains/${domain}/caching`;
+    const url = `${config.baseUrl}${endpoint}`;
+
+    const response = await fetch(url, {
+      headers: config.headers
+    });
+
+    const data = await response.json();
+
+    res.json({
+      provider: provider,
+      endpoint: endpoint,
+      domain: domain,
+      status: response.status,
+      success: response.ok,
+      data: data
+    });
+  } catch (error) {
+    res.status(500).json({
+      provider: req.query.provider || 'vergecloud',
+      error: error.message,
+      success: false
+    });
+  }
+});
+
+app.get('/api-test/firewall', async (req, res) => {
+  try {
+    const provider = req.query.provider || 'vergecloud';
+    const config = CONFIG[provider];
+    const domain = config.domain;
+
+    if (!config) {
+      return res.status(400).json({ error: 'Invalid provider' });
+    }
+
+    const endpoint = `/domains/${domain}/firewall/settings`;
+    const url = `${config.baseUrl}${endpoint}`;
+
+    const response = await fetch(url, {
+      headers: config.headers
+    });
+
+    const data = await response.json();
+
+    res.json({
+      provider: provider,
+      endpoint: endpoint,
+      domain: domain,
+      status: response.status,
+      success: response.ok,
+      data: data
+    });
+  } catch (error) {
+    res.status(500).json({
+      provider: req.query.provider || 'vergecloud',
+      error: error.message,
+      success: false
+    });
+  }
+});
+
+app.get('/api-test/analytics', async (req, res) => {
+  try {
+    const provider = req.query.provider || 'vergecloud';
+    const config = CONFIG[provider];
+    const domain = config.domain;
+
+    if (!config) {
+      return res.status(400).json({ error: 'Invalid provider' });
+    }
+
+    const endpoint = `/domains/${domain}/reports/traffics`;
+    const url = `${config.baseUrl}${endpoint}`;
+
+    const response = await fetch(url, {
+      headers: config.headers
+    });
+
+    const data = await response.json();
+
+    res.json({
+      provider: provider,
+      endpoint: endpoint,
+      domain: domain,
+      status: response.status,
+      success: response.ok,
+      data: data
+    });
+  } catch (error) {
+    res.status(500).json({
+      provider: req.query.provider || 'vergecloud',
+      error: error.message,
+      success: false
+    });
+  }
+});
+
 const port = process.env.PORT || 8080;
 app.listen(port, () => console.log(`mgmt api listening on ${port}`));
 

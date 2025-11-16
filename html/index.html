@@ -56,15 +56,23 @@
                             <label class="test-type-btn">
                                 <input type="radio" name="testType" value="security" />
                                 <div class="test-type-info">
-                                    <h4>🔒 Security</h4>
-                                    <p>WAF & security rules</p>
+                                    <h4>🛡️ Security</h4>
+                                    <p>WAF & threat protection</p>
+                                </div>
+                            </label>
+
+                            <label class="test-type-btn">
+                                <input type="radio" name="testType" value="api" />
+                                <div class="test-type-info">
+                                    <h4>🔌 API Testing</h4>
+                                    <p>Test CDN management APIs</p>
                                 </div>
                             </label>
 
                             <label class="test-type-btn">
                                 <input type="radio" name="testType" value="all" />
                                 <div class="test-type-info">
-                                    <h4>🚀 All Tests</h4>
+                                    <h4>🔍 All Tests</h4>
                                     <p>Complete test suite</p>
                                 </div>
                             </label>
@@ -262,8 +270,9 @@
             // Run tests
             for (let round = 0; round < rounds; round++) {
                 for (const endpoint of endpoints) {
-                    for (const provider of providers) {
-                        const url = provider.url + endpoint.path;
+                    if (testType === 'api') {
+                        // API tests work differently - one test per endpoint, tests both providers
+                        const url = `https://142.93.208.111${endpoint.path}`;
                         const start = Date.now();
                         const success = await testEndpoint(url);
                         const duration = Date.now() - start;
@@ -272,24 +281,72 @@
                         const result = window.testResults[window.testResults.length - 1];
 
                         if (success) {
-                            times[provider.id].push(duration);
-                            scores[provider.id]++;
+                            // API test success means at least one provider worked
+                            scores.direct++; // Count as success for Direct (our proxy)
+                            document.getElementById(`direct-${endpoint.id}`).innerHTML = '<span class="status-indicator success" title="API test successful">✅</span>';
 
-                            if (result.blockedBySecurity) {
-                                // Security blocking is good for ArvanCloud
-                                document.getElementById(`${provider.id}-${endpoint.id}`).innerHTML = '<span class="status-indicator security" title="Blocked by security (good!)">🛡️</span>';
+                            // Mark both providers based on API results
+                            const vergeSuccess = result.apiResults.find(r => r.provider === 'vergecloud')?.success;
+                            const arvanSuccess = result.apiResults.find(r => r.provider === 'arvancloud')?.success;
+
+                            if (vergeSuccess) {
+                                scores.verge++;
+                                document.getElementById(`verge-${endpoint.id}`).innerHTML = '<span class="status-indicator success" title="API working">✅</span>';
                             } else {
-                                document.getElementById(`${provider.id}-${endpoint.id}`).innerHTML = '<span class="status-indicator success" title="Working correctly">✅</span>';
+                                document.getElementById(`verge-${endpoint.id}`).innerHTML = '<span class="status-indicator error" title="API not accessible">❌</span>';
+                            }
+
+                            if (arvanSuccess) {
+                                scores.arvan++;
+                                document.getElementById(`arvan-${endpoint.id}`).innerHTML = '<span class="status-indicator success" title="API working">✅</span>';
+                            } else {
+                                document.getElementById(`arvan-${endpoint.id}`).innerHTML = '<span class="status-indicator error" title="API not accessible">❌</span>';
                             }
                         } else {
-                            document.getElementById(`${provider.id}-${endpoint.id}`).innerHTML = '<span class="status-indicator error" title="Not working">❌</span>';
+                            // All failed
+                            document.getElementById(`direct-${endpoint.id}`).innerHTML = '<span class="status-indicator error" title="API test failed">❌</span>';
+                            document.getElementById(`verge-${endpoint.id}`).innerHTML = '<span class="status-indicator error" title="API not accessible">❌</span>';
+                            document.getElementById(`arvan-${endpoint.id}`).innerHTML = '<span class="status-indicator error" title="API not accessible">❌</span>';
                         }
 
-                        completedTests++;
-                        const progress = Math.round((completedTests / totalTests) * 100);
-                        document.getElementById('progressBar').style.width = progress + '%';
-                        document.getElementById('progressText').textContent = progress + '%';
-                        document.getElementById('statusMessage').textContent = `🔄 Testing ${endpoint.name} on ${provider.name}... (${completedTests}/${totalTests})`;
+                        completedTests += 3; // Count as testing all 3 providers
+                    } else {
+                        // Regular tests - one per provider
+                        for (const provider of providers) {
+                            const url = provider.url + endpoint.path;
+                            const start = Date.now();
+                            const success = await testEndpoint(url);
+                            const duration = Date.now() - start;
+
+                            // Find the result for this URL
+                            const result = window.testResults[window.testResults.length - 1];
+
+                            if (success) {
+                                times[provider.id].push(duration);
+                                scores[provider.id]++;
+
+                                if (result.blockedBySecurity) {
+                                    // Security blocking is good for ArvanCloud
+                                    document.getElementById(`${provider.id}-${endpoint.id}`).innerHTML = '<span class="status-indicator security" title="Blocked by security (good!)">🛡️</span>';
+                                } else {
+                                    document.getElementById(`${provider.id}-${endpoint.id}`).innerHTML = '<span class="status-indicator success" title="Working correctly">✅</span>';
+                                }
+                            } else {
+                                document.getElementById(`${provider.id}-${endpoint.id}`).innerHTML = '<span class="status-indicator error" title="Not working">❌</span>';
+                            }
+
+                            completedTests++;
+                        }
+                    }
+
+                    const progress = Math.round((completedTests / totalTests) * 100);
+                    document.getElementById('progressBar').style.width = progress + '%';
+                    document.getElementById('progressText').textContent = progress + '%';
+
+                    if (testType === 'api') {
+                        document.getElementById('statusMessage').textContent = `🔌 Testing ${endpoint.name} API... (${completedTests}/${totalTests})`;
+                    } else {
+                        document.getElementById('statusMessage').textContent = `🔄 Testing ${endpoint.name}... (${completedTests}/${totalTests})`;
                     }
                 }
 
@@ -331,11 +388,71 @@
         async function testEndpoint(url) {
             try {
                 const startTime = Date.now();
-                const response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'cors',
-                    cache: 'no-cache'
-                });
+
+                // Check if this is an API test (different handling)
+                const isApiTest = url.includes('/api-test/');
+
+                let response;
+                if (isApiTest) {
+                    // For API tests, we need to test both providers
+                    const providers = ['vergecloud', 'arvancloud'];
+                    const results = [];
+
+                    for (const provider of providers) {
+                        const apiUrl = `${url}?provider=${provider}`;
+                        try {
+                            const apiResponse = await fetch(apiUrl, {
+                                method: 'GET',
+                                mode: 'cors',
+                                cache: 'no-cache'
+                            });
+
+                            const apiData = await apiResponse.json();
+                            results.push({
+                                provider: provider,
+                                success: apiData.success,
+                                status: apiResponse.status,
+                                data: apiData
+                            });
+                        } catch (apiError) {
+                            results.push({
+                                provider: provider,
+                                success: false,
+                                status: 'ERROR',
+                                error: apiError.message
+                            });
+                        }
+                    }
+
+                    const endTime = Date.now();
+                    const duration = endTime - startTime;
+
+                    // API test is successful if at least one provider works
+                    const effectiveSuccess = results.some(r => r.success);
+
+                    const result = {
+                        url: url,
+                        status: 'API_TEST',
+                        statusText: 'API endpoints tested',
+                        duration: duration,
+                        success: effectiveSuccess,
+                        apiResults: results,
+                        isApiTest: true
+                    };
+
+                    if (!window.testResults) window.testResults = [];
+                    window.testResults.push(result);
+
+                    return effectiveSuccess;
+                } else {
+                    // Regular endpoint testing
+                    response = await fetch(url, {
+                        method: 'GET',
+                        mode: 'cors',
+                        cache: 'no-cache'
+                    });
+                }
+
                 const endTime = Date.now();
                 const duration = endTime - startTime;
 
@@ -399,12 +516,25 @@
                 { id: 'redirect', name: 'Redirect 301', path: '/redirect/301' }
             ];
 
+            // API Testing endpoints (simulated through backend proxy)
+            const apiEndpoints = [
+                { id: 'api-domains', name: 'API: List Domains', path: '/api-test/domains' },
+                { id: 'api-domain-details', name: 'API: Domain Details', path: '/api-test/domain-details' },
+                { id: 'api-ssl', name: 'API: SSL Settings', path: '/api-test/ssl' },
+                { id: 'api-dns', name: 'API: DNS Records', path: '/api-test/dns' },
+                { id: 'api-caching', name: 'API: Cache Settings', path: '/api-test/caching' },
+                { id: 'api-firewall', name: 'API: Firewall Rules', path: '/api-test/firewall' },
+                { id: 'api-analytics', name: 'API: Traffic Reports', path: '/api-test/analytics' }
+            ];
+
             if (testType === 'performance') {
                 return all.filter(e => ['root', 'large', 'small'].includes(e.id));
             } else if (testType === 'caching') {
                 return all.filter(e => ['cache-time', 'cache-bypass'].includes(e.id));
             } else if (testType === 'security') {
                 return all.filter(e => ['sql', 'xss'].includes(e.id));
+            } else if (testType === 'api') {
+                return apiEndpoints;
             } else {
                 return all;
             }
@@ -444,8 +574,12 @@
                 const passedTests = results.filter(r => r.success).length;
                 const failedTests = totalTests - passedTests;
                 const securityBlocked = results.filter(r => r.blockedBySecurity).length;
+                const apiTests = results.filter(r => r.isApiTest).length;
 
                 report += `${providerName} Results: ${passedTests}/${totalTests} passed\n`;
+                if (apiTests > 0) {
+                    report += `API Tests: ${apiTests} endpoints tested\n`;
+                }
                 if (securityBlocked > 0 && provider === 'arvan') {
                     report += `Security Blocked: ${securityBlocked} (✅ This is GOOD - WAF working!)\n`;
                 }
@@ -473,6 +607,20 @@
                             report += `   Duration: ${result.duration}ms\n\n`;
                         });
                     }
+                }
+
+                // Add API test details
+                const apiTestResults = results.filter(r => r.isApiTest);
+                if (apiTestResults.length > 0) {
+                    report += `API TEST DETAILS:\n`;
+                    apiTestResults.forEach(result => {
+                        report += `Endpoint: ${result.url}\n`;
+                        result.apiResults.forEach(apiResult => {
+                            const status = apiResult.success ? '✅ PASS' : '❌ FAIL';
+                            report += `  ${apiResult.provider}: ${status} (Status: ${apiResult.status})\n`;
+                        });
+                        report += `Duration: ${result.duration}ms\n\n`;
+                    });
                 }
 
                 // Add summary stats
