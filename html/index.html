@@ -207,6 +207,9 @@
             try {
                 await runTests(rounds, delay);
                 resultsSection.classList.add('active');
+            } catch (error) {
+                console.error('Error in startTests:', error);
+                alert('Error running tests: ' + error.message);
             } finally {
                 runBtn.disabled = false;
                 progressSection.style.display = 'none';
@@ -219,6 +222,7 @@
             document.getElementById('exportBtn').style.display = 'none';
 
             const endpoints = getEndpoints();
+
             const providers = [
                 { id: 'direct', name: 'Direct', url: 'https://142.93.208.111' },
                 { id: 'verge', name: 'VergeCloud', url: 'https://test-verge-test.shop' },
@@ -566,8 +570,12 @@
             });
 
             // Generate detailed report
+            const currentOrigin = window.location.origin;
+            const currentDomain = window.location.hostname;
             let report = `CDN Functionality Test Report\n`;
-            report += `Generated: ${new Date().toISOString()}\n\n`;
+            report += `Generated: ${new Date().toISOString()}\n`;
+            report += `Test Origin: ${currentOrigin}\n`;
+            report += `Test Domain: ${currentDomain}\n\n`;
 
             for (const [provider, results] of Object.entries(groupedResults)) {
                 const providerName = provider === 'direct' ? 'Direct' :
@@ -641,7 +649,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `cdn-test-report-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+            a.download = `cdn-test-report-${currentDomain}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);

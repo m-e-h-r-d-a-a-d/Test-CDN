@@ -15,13 +15,16 @@ Test-CDN/
 ├── html/                  # Frontend web interface
 │   ├── index.html         # Main testing dashboard (UNIFIED)
 │   ├── style.css          # Modern UI styling
-│   └── tests/             # Legacy test pages
+│   ├── probe.txt          # Small test file for performance testing
+│   ├── large-probe.txt    # Large test file for compression testing
+│   └── protected.txt      # Protected content for hotlink testing
 ├── scripts/               # Testing scripts (organized)
-│   ├── *.sh              # Bash testing scripts
-│   └── *.js              # Node.js testing utilities
+│   ├── api-test-*.sh     # Bash API testing scripts (simple, basic, quick, comprehensive, checklist)
+│   ├── api-tester.js     # Node.js API testing framework
+│   ├── simple-test.js    # Basic Node.js tests
+│   └── README.md         # Scripts documentation
 ├── docs/                  # Documentation
 │   └── CDN-API-Testing-Checklist.md  # Comprehensive checklist
-├── config/                # Configuration files
 ├── Report/                # Test result reports (.gitignore)
 └── README.md             # This file
 ```
@@ -122,6 +125,39 @@ The comprehensive checklist (`docs/CDN-API-Testing-Checklist.md`) covers:
 - 📊 **Analytics & Reporting**
 - 📝 **Logging & Monitoring**
 - 🔧 **Advanced Features**
+
+## 📜 Testing Scripts
+
+For programmatic testing, several scripts are available in the `scripts/` directory:
+
+### Bash Scripts
+```bash
+# Quick health check
+./scripts/api-test-simple.sh
+
+# Detailed endpoint testing
+./scripts/api-test-quick.sh
+
+# Comprehensive testing with reports
+./scripts/api-test-checklist.sh
+
+# Basic API connectivity
+./scripts/api-test-basic.sh
+
+# Full featured testing
+./scripts/api-test-comprehensive.sh
+```
+
+### Node.js Scripts
+```bash
+# Advanced API testing
+node scripts/api-tester.js
+
+# Simple connectivity tests
+node scripts/simple-test.js
+```
+
+See `scripts/README.md` for detailed script documentation and usage examples.
 
 ## 🔧 Development
 

@@ -11,8 +11,8 @@ app.get('/health', (req, res) => res.status(200).send('ok'));
 // CORS for local runner usage
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
   if (req.method === 'OPTIONS') return res.status(204).end();
   next();
 });
@@ -21,6 +21,26 @@ app.use((req, res, next) => {
 async function safeJson(res) {
   try { return await res.json(); } catch { return {}; }
 }
+
+// CDN Provider Configuration
+const CONFIG = {
+  vergecloud: {
+    baseUrl: process.env.VERGE_API_BASE || 'https://api.verge.cloud/v1',
+    domain: process.env.VERGE_DOMAIN || '',
+    headers: {
+      'X-API-Key': process.env.VERGE_TOKEN || '',
+      'Content-Type': 'application/json'
+    }
+  },
+  arvancloud: {
+    baseUrl: process.env.ARVAN_API_BASE || 'https://napi.arvancloud.ir/cdn/4.0',
+    domain: process.env.ARVAN_DOMAIN || '',
+    headers: {
+      'Authorization': `apikey ${process.env.ARVAN_TOKEN || ''}`,
+      'Content-Type': 'application/json'
+    }
+  }
+};
 
 // Purge proxy
 app.post('/purge', async (req, res) => {
@@ -73,121 +93,6 @@ app.post('/purge', async (req, res) => {
     return res.status(200).json({ ok: true, provider: p, result: out });
   } catch (e) {
     return res.status(500).json({ error: String(e) });
-  }
-});
-
-// ArvanCloud SSL management endpoints
-app.get('/arvan/ssl/:domain', async (req, res) => {
-  try {
-    const { domain } = req.params;
-    const base = process.env.ARVAN_API_BASE || 'https://napi.arvancloud.ir/cdn/4.0';
-    const token = process.env.ARVAN_TOKEN || '';
-    if (!token) return res.status(400).json({ error: 'ArvanCloud token missing on server' });
-
-    const resp = await fetch(`${base.replace(/\/$/, '')}/domains/${encodeURIComponent(domain)}/ssl`, {
-      method: 'GET',
-      headers: { 'Authorization': `apikey ${token}` }
-    });
-    const data = await safeJson(resp);
-    res.status(resp.status).json(data);
-  } catch (e) {
-    res.status(500).json({ error: String(e) });
-  }
-});
-
-app.get('/arvan/ssl/:domain/certificates', async (req, res) => {
-  try {
-    const { domain } = req.params;
-    const base = process.env.ARVAN_API_BASE || 'https://napi.arvancloud.ir/cdn/4.0';
-    const token = process.env.ARVAN_TOKEN || '';
-    if (!token) return res.status(400).json({ error: 'ArvanCloud token missing on server' });
-
-    const resp = await fetch(`${base.replace(/\/$/, '')}/domains/${encodeURIComponent(domain)}/ssl/certificates`, {
-      method: 'GET',
-      headers: { 'Authorization': `apikey ${token}` }
-    });
-    const data = await safeJson(resp);
-    res.status(resp.status).json(data);
-  } catch (e) {
-    res.status(500).json({ error: String(e) });
-  }
-});
-
-app.delete('/arvan/ssl/:domain/certificates/:certId', async (req, res) => {
-  try {
-    const { domain, certId } = req.params;
-    const base = process.env.ARVAN_API_BASE || 'https://napi.arvancloud.ir/cdn/4.0';
-    const token = process.env.ARVAN_TOKEN || '';
-    if (!token) return res.status(400).json({ error: 'ArvanCloud token missing on server' });
-
-    const resp = await fetch(`${base.replace(/\/$/, '')}/domains/${encodeURIComponent(domain)}/ssl/certificates/${certId}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `apikey ${token}` }
-    });
-    const data = await safeJson(resp);
-    res.status(resp.status).json(data);
-  } catch (e) {
-    res.status(500).json({ error: String(e) });
-  }
-});
-
-// ArvanCloud caching configuration endpoints
-app.get('/arvan/caching/:domain', async (req, res) => {
-  try {
-    const { domain } = req.params;
-    const base = process.env.ARVAN_API_BASE || 'https://napi.arvancloud.ir/cdn/4.0';
-    const token = process.env.ARVAN_TOKEN || '';
-    if (!token) return res.status(400).json({ error: 'ArvanCloud token missing on server' });
-
-    const resp = await fetch(`${base.replace(/\/$/, '')}/domains/${encodeURIComponent(domain)}/caching`, {
-      method: 'GET',
-      headers: { 'Authorization': `apikey ${token}` }
-    });
-    const data = await safeJson(resp);
-    res.status(resp.status).json(data);
-  } catch (e) {
-    res.status(500).json({ error: String(e) });
-  }
-});
-
-app.patch('/arvan/caching/:domain', async (req, res) => {
-  try {
-    const { domain } = req.params;
-    const base = process.env.ARVAN_API_BASE || 'https://napi.arvancloud.ir/cdn/4.0';
-    const token = process.env.ARVAN_TOKEN || '';
-    if (!token) return res.status(400).json({ error: 'ArvanCloud token missing on server' });
-
-    const resp = await fetch(`${base.replace(/\/$/, '')}/domains/${encodeURIComponent(domain)}/caching`, {
-      method: 'PATCH',
-      headers: {
-        'Apikey': token,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(req.body)
-    });
-    const data = await safeJson(resp);
-    res.status(resp.status).json(data);
-  } catch (e) {
-    res.status(500).json({ error: String(e) });
-  }
-});
-
-// ArvanCloud firewall/WAF configuration endpoints
-app.get('/arvan/firewall/:domain', async (req, res) => {
-  try {
-    const { domain } = req.params;
-    const base = process.env.ARVAN_API_BASE || 'https://napi.arvancloud.ir/cdn/4.0';
-    const token = process.env.ARVAN_TOKEN || '';
-    if (!token) return res.status(400).json({ error: 'ArvanCloud token missing on server' });
-
-    const resp = await fetch(`${base.replace(/\/$/, '')}/domains/${encodeURIComponent(domain)}/firewall/settings`, {
-      method: 'GET',
-      headers: { 'Authorization': `apikey ${token}` }
-    });
-    const data = await safeJson(resp);
-    res.status(resp.status).json(data);
-  } catch (e) {
-    res.status(500).json({ error: String(e) });
   }
 });
 
