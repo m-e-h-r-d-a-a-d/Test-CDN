@@ -33,6 +33,10 @@ if ! ssh_cmd -q ${REMOTE_USER}@${REMOTE_HOST} 'echo ok' >/dev/null 2>&1; then
   exit 1
 fi
 
+# Build frontend assets before syncing
+echo "[build] Preparing React frontend..."
+(cd frontend && npm install >/dev/null 2>&1 && npm run build >/dev/null 2>&1)
+
 # Ensure SSL certs exist (self-signed for testing)
 if [ ! -f nginx/ssl/server.crt ] || [ ! -f nginx/ssl/server.key ]; then
   echo "[info] Generating self-signed certificate..."

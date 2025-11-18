@@ -11,18 +11,16 @@ services:
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/ssl:/etc/nginx/ssl
-      - ./html:/usr/share/nginx/html
+      - ./frontend/dist:/usr/share/nginx/html
     networks:
       - cdnnet
 
   api:
-    image: node:18-alpine
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: cdn-test-api
-    working_dir: /usr/src/app
-    command: sh -lc "cd /usr/src/app && npm install --production --silent && node server.js"
     restart: unless-stopped
-    volumes:
-      - ./api:/usr/src/app
     environment:
       - PORT=8080
       - CF_API_TOKEN=${CF_API_TOKEN}

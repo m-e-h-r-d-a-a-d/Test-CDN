@@ -6,18 +6,15 @@ A comprehensive testing framework for evaluating VergeCloud and ArvanCloud CDN p
 
 ```
 Test-CDN/
-├── api/                    # Backend API server
-│   ├── server.js          # Main API server with CDN proxy endpoints
-│   └── package.json       # Node.js dependencies
+├── backend/               # Go backend API server
+│   ├── cmd/server        # Main entrypoint
+│   └── Dockerfile        # Multi-stage build for production
+├── frontend/              # React frontend (Vite)
+│   ├── src               # UI + legacy test logic
+│   └── public            # Static probes/tests served via CDN
 ├── nginx/                 # Nginx configuration
 │   └── conf.d/
 │       └── default.conf   # Main nginx config with CDN routing
-├── html/                  # Frontend web interface
-│   ├── index.html         # Main testing dashboard (UNIFIED)
-│   ├── style.css          # Modern UI styling
-│   ├── probe.txt          # Small test file for performance testing
-│   ├── large-probe.txt    # Large test file for compression testing
-│   └── protected.txt      # Protected content for hotlink testing
 ├── scripts/               # Testing scripts (organized)
 │   ├── api-test-*.sh     # Bash API testing scripts (simple, basic, quick, comprehensive, checklist)
 │   ├── api-tester.js     # Node.js API testing framework
@@ -31,16 +28,24 @@ Test-CDN/
 
 ## 🚀 Quick Start
 
-### 1. Deploy the Application
+### 1. Install Frontend Dependencies
 ```bash
+cd frontend
+npm install
+npm run build   # outputs to frontend/dist which nginx serves
+```
+
+### 2. Deploy the Application
+```bash
+cd ..
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
-### 2. Access the Testing Dashboard
-Open your browser to: `http://142.93.208.111`
+### 3. Access the Testing Dashboard
+Open your browser to: `https://test-verge-test.shop` (or your origin domain)
 
-### 3. Run Complete CDN Test
+### 4. Run Complete CDN Test
 - Configure test rounds and delay
 - Click **"START TESTS"**
 - Watch real-time results across all categories
@@ -112,6 +117,25 @@ GET /api-test/analytics     // Test reporting APIs
 
 Each API test endpoint checks **both providers simultaneously** and reports which ones are accessible and functional.
 
+### 🔁 Server-Side Test Runner
+
+All automated suites now execute on the Go backend, guaranteeing identical behaviour regardless of which CDN domain you test from.
+
+```json
+POST /tests/run
+{
+  "rounds": 3,
+  "delay": 2,
+  "providers": ["verge", "arvan"] // optional, defaults to all
+}
+```
+
+```text
+GET /tests/run/stream?rounds=3&delay=2&providers=verge,arvan  // SSE live progress feed
+```
+
+The response contains the full result matrix (endpoint status, response time, headers, API payloads). The React dashboard calls this endpoint, but you can also integrate it directly into CI pipelines or ad‑hoc scripts.
+
 ## 📋 Using the Checklist
 
 The comprehensive checklist (`docs/CDN-API-Testing-Checklist.md`) covers:
@@ -162,15 +186,15 @@ See `scripts/README.md` for detailed script documentation and usage examples.
 ## 🔧 Development
 
 ### Adding New Tests
-1. Add endpoint to `getEndpoints()` in `html/index.html`
-2. Add backend route in `api/server.js` if API testing
+1. Add the new endpoint to `frontend/src/data/endpoints.js` (UI) and `backend/internal/tests/endpoints.go` (server runner)
+2. Add backend routing logic if the test requires a new API surface (see `backend/internal/server`)
 3. Add Nginx proxy rule if needed
 4. Update checklist documentation
 
 ### Modifying Test Logic
-- Frontend logic: `html/index.html` JavaScript
-- Backend API tests: `api/server.js`
-- Styling: `html/style.css`
+- Frontend logic: `frontend/src/App.jsx` and supporting hooks/utils
+- Backend API tests: `backend/cmd/server/main.go`
+- Styling: `frontend/src/styles/app.css`
 
 ## 📈 Reports & Analytics
 
