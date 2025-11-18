@@ -14,3 +14,7 @@ vergecloud-edge/**/*.cer
 
 # Test reports (generated files)
 Report/
+
+# Frontend build artifacts
+frontend/node_modules/
+frontend/dist/
