@@ -10,7 +10,7 @@ Test-CDN/
 │   ├── cmd/server        # Main entrypoint
 │   └── Dockerfile        # Multi-stage build for production
 ├── frontend/              # React frontend (Vite)
-│   ├── src               # UI + legacy test logic
+│   ├── src               # UI components and client-side logic
 │   └── public            # Static probes/tests served via CDN
 ├── nginx/                 # Nginx configuration
 │   └── conf.d/
@@ -22,7 +22,9 @@ Test-CDN/
 │   └── README.md         # Scripts documentation
 ├── docs/                  # Documentation
 │   └── CDN-API-Testing-Checklist.md  # Comprehensive checklist
+├── api/                   # Legacy Node.js API (DEPRECATED - see LEGACY.md)
 ├── Report/                # Test result reports (.gitignore)
+├── LEGACY.md             # Legacy code documentation
 └── README.md             # This file
 ```
 

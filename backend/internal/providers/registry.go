@@ -62,6 +62,61 @@ func resolveEndpoint(provider config.ProviderConfig, resource string) (string, e
 		return "", errors.New("missing resource")
 	}
 
+	switch provider.ID {
+	case "verge", "vergecloud":
+		return resolveVergeEndpoint(provider, path)
+	case "arvan", "arvancloud":
+		return resolveArvanEndpoint(provider, path)
+	default:
+		return resolveGenericEndpoint(provider, path)
+	}
+}
+
+func resolveVergeEndpoint(provider config.ProviderConfig, path string) (string, error) {
+	switch path {
+	case "domain-details":
+		return requireDomain(provider, "/domains/%s")
+	case "ssl":
+		return requireDomain(provider, "/domains/%s/ssl")
+	case "dns":
+		return requireDomain(provider, "/dns/%s/records")  // Works
+	case "caching":
+		return requireDomain(provider, "/caching/%s")      // Works
+	case "firewall":
+		// Firewall endpoint doesn't exist, return error
+		return "", fmt.Errorf("firewall endpoint not available for provider %s", provider.ID)
+	case "analytics":
+		// Analytics endpoint doesn't exist, return error
+		return "", fmt.Errorf("analytics endpoint not available for provider %s", provider.ID)
+	case "domains":
+		return "/domains", nil
+	default:
+		return ensureLeadingSlash(path), nil
+	}
+}
+
+func resolveArvanEndpoint(provider config.ProviderConfig, path string) (string, error) {
+	switch path {
+	case "domain-details":
+		return requireDomain(provider, "/domains/%s")
+	case "ssl":
+		return requireDomain(provider, "/domains/%s/ssl")
+	case "dns":
+		return requireDomain(provider, "/domains/%s/dns-records")
+	case "caching":
+		return requireDomain(provider, "/domains/%s/caching")
+	case "firewall":
+		return requireDomain(provider, "/domains/%s/firewall/settings")
+	case "analytics":
+		return requireDomain(provider, "/domains/%s/reports/traffics")
+	case "domains":
+		return "/domains", nil
+	default:
+		return ensureLeadingSlash(path), nil
+	}
+}
+
+func resolveGenericEndpoint(provider config.ProviderConfig, path string) (string, error) {
 	switch path {
 	case "domain-details":
 		return requireDomain(provider, "/domains/%s")
