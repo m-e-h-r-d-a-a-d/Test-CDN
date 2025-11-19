@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated CDN Test Runner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-5xl mx-auto p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-semibold text-gray-800">Automated CDN Test Runner</h1>
+            <a href="/" class="text-blue-600 hover:underline">← Back to Dashboard</a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <div class="flex items-center gap-3 mb-4">
+                <button data-tab="basics" class="tab-btn px-3 py-1 rounded bg-blue-600 text-white">Basics</button>
+                <button data-tab="advanced" class="tab-btn px-3 py-1 rounded bg-gray-200">Advanced</button>
+                <button data-tab="analysis" class="tab-btn px-3 py-1 rounded bg-gray-200">Analysis</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="tab-basics">
+                <label class="block">
+                    <span class="text-gray-700">Interval (ms)</span>
+                    <input id="interval" type="number" value="5000" min="100" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">Rounds</span>
+                    <input id="rounds" type="number" value="5" min="1" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">Method</span>
+                    <select id="method" class="mt-1 block w-full rounded border-gray-300">
+                        <option>HEAD</option>
+                        <option>GET</option>
+                    </select>
+                </label>
+            </div>
+            <div class="grid grid-cols-1 gap-3" id="tab-advanced" style="display:none;">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p class="text-sm text-blue-800 font-medium">🎯 Advanced Test Categories</p>
+                    <p class="text-sm text-blue-700">All test categories below are pre-selected. Use presets to quickly switch between different test focuses.</p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <div class="text-sm text-gray-600">Presets:</div>
+                    <button data-preset="performance" class="px-3 py-1 rounded bg-purple-600 text-white">Performance</button>
+                    <button data-preset="validation" class="px-3 py-1 rounded bg-teal-600 text-white">Validation</button>
+                    <button data-preset="cdn-rules" class="px-3 py-1 rounded bg-amber-600 text-white">CDN Rules</button>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="api" checked> API/Redirect/Hotlink</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="cache" checked> Cache Validation</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="compression" checked> Compression</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="protocol" checked> Protocol (h2/h3)</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="range" checked> Range Requests</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="stale" checked> Stale Headers</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="cachekey" checked> Cache Key Variants</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="rate" checked> Rate Limiting</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="geo" checked> Geo Capture</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="cache-adv" checked> Advanced Caching</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="preset-test" value="security" checked> Security/WAF</label>
+                </div>
+                <div class="flex gap-3 flex-wrap items-center">
+                    <button id="runSelected" class="px-4 py-2 bg-emerald-700 text-white rounded">Run Selected</button>
+                    <button id="comprehensiveBtn" class="px-4 py-2 bg-emerald-900 text-white rounded">Run Comprehensive</button>
+                    <button id="runAllBtn" class="px-6 py-3 bg-indigo-800 text-white rounded font-semibold text-lg shadow-lg hover:bg-indigo-900">🚀 Run All Tests (Everything)</button>
+                    <button id="selectAllBtn" class="px-3 py-2 bg-gray-500 text-white rounded text-sm">Select All</button>
+                </div>
+                <div class="mt-2 text-sm text-green-600 font-medium">
+                    ✅ Everything is pre-selected by default - just click "Run All Tests"!
+                </div>
+            </div>
+            <div class="mt-4 flex gap-3 flex-wrap" id="tab-actions">
+                <button id="startBtn" class="px-4 py-2 bg-blue-600 text-white rounded">Start</button>
+                <button id="stopBtn" class="px-4 py-2 bg-red-600 text-white rounded">Stop</button>
+                <button id="downloadBtn" class="px-4 py-2 bg-gray-700 text-white rounded">Download CSV</button>
+                <button id="clearBtn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded">Clear</button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-3">Targets</h2>
+            <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+                <p class="text-sm text-green-800 font-medium">✅ Everything is pre-selected by default!</p>
+                <p class="text-sm text-green-700">All test categories, providers, and endpoints are automatically checked. Just click "🚀 Run All Tests" to test everything.</p>
+            </div>
+            <p class="text-sm text-gray-600 mb-2">Use group toggles to quickly include/exclude sections if needed.</p>
+            <div class="flex flex-wrap gap-3 mb-3">
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-group" data-group="large" checked> Large file</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-group" data-group="root" checked> Root (/)</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-group" data-group="small" checked> Small (probe.txt)</label>
+                <span class="mx-2 text-gray-400">|</span>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-scheme" data-scheme="http" checked> HTTP</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-scheme" data-scheme="https" checked> HTTPS</label>
+                <span class="mx-2 text-gray-400">|</span>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-provider" data-provider="direct" checked> Direct</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-provider" data-provider="verge" checked> VergeCloud</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="toggle-provider" data-provider="arvan" checked> ArvanCloud</label>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+                <div>
+                    <div class="font-medium mb-1">Large file</div>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="direct" data-scheme="http" value="http://142.93.208.111/large-probe.txt" checked><span>Direct HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="direct" data-scheme="https" value="https://142.93.208.111/large-probe.txt" checked><span>Direct HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="verge" data-scheme="http" value="http://test-verge-test.shop/large-probe.txt" checked><span>VergeCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="verge" data-scheme="https" value="https://test-verge-test.shop/large-probe.txt" checked><span>VergeCloud HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="arvan" data-scheme="http" value="http://test20250316.ir/large-probe.txt" checked><span>ArvanCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="large" data-provider="arvan" data-scheme="https" value="https://test20250316.ir/large-probe.txt" checked><span>ArvanCloud HTTPS</span></label>
+                </div>
+                <div>
+                    <div class="font-medium mb-1">Root (/)</div>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="direct" data-scheme="http" value="http://142.93.208.111/" checked><span>Direct HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="direct" data-scheme="https" value="https://142.93.208.111/" checked><span>Direct HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="verge" data-scheme="http" value="http://test-verge-test.shop/" checked><span>VergeCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="verge" data-scheme="https" value="https://test-verge-test.shop/" checked><span>VergeCloud HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="arvan" data-scheme="http" value="http://test20250316.ir/" checked><span>ArvanCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="root" data-provider="arvan" data-scheme="https" value="https://test20250316.ir/" checked><span>ArvanCloud HTTPS</span></label>
+                </div>
+                <div>
+                    <div class="font-medium mb-1">Small (probe.txt)</div>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="direct" data-scheme="http" value="http://142.93.208.111/probe.txt" checked><span>Direct HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="direct" data-scheme="https" value="https://142.93.208.111/probe.txt" checked><span>Direct HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="verge" data-scheme="http" value="http://test-verge-test.shop/probe.txt" checked><span>VergeCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="verge" data-scheme="https" value="https://test-verge-test.shop/probe.txt" checked><span>VergeCloud HTTPS</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="arvan" data-scheme="http" value="http://test20250316.ir/probe.txt" checked><span>ArvanCloud HTTP</span></label>
+                    <label class="flex items-center gap-2"><input type="checkbox" class="target" data-type="small" data-provider="arvan" data-scheme="https" value="https://test20250316.ir/probe.txt" checked><span>ArvanCloud HTTPS</span></label>
+                </div>
+            </div>
+            <div class="text-xs text-gray-500">Tip: toggle sections/schemes/providers to quickly shape the test set.</div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-3">CDN Purge Helpers</h2>
+            <p class="text-sm text-gray-600 mb-2">Generate curl commands for cache purge. Copy and run in your terminal with your API token.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <label class="block">
+                    <span class="text-gray-700">Provider</span>
+                    <select id="purgeProvider" class="mt-1 block w-full rounded border-gray-300">
+                        <option value="verge">VergeCloud</option>
+                        <option value="arvan">ArvanCloud</option>
+                        <option value="cloudflare">Cloudflare-compatible</option>
+                    </select>
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">API Token</span>
+                    <input id="purgeToken" type="password" placeholder="paste token" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">URL to Purge</span>
+                    <input id="purgeUrl" type="text" value="https://test-verge-test.shop/" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+            </div>
+            <div class="mt-3 flex gap-3 flex-wrap">
+                <button id="makePurge" class="px-4 py-2 bg-gray-800 text-white rounded">Generate curl</button>
+                <button id="runPurge" class="px-4 py-2 bg-emerald-700 text-white rounded">Run Purge</button>
+                <button id="copyPurge" class="px-4 py-2 bg-gray-500 text-white rounded">Copy</button>
+            </div>
+            <pre id="purgeCmd" class="bg-gray-900 text-green-200 text-xs p-3 rounded mt-3 overflow-x-auto" style="min-height:48px;"></pre>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-3">Signed URL Generator</h2>
+            <p class="text-sm text-gray-600 mb-2">Create a signed URL (client-side HMAC) for testing CDN signed-URL features. This harness signs query string data; verification must be configured at the CDN edge.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <label class="block">
+                    <span class="text-gray-700">Secret</span>
+                    <input id="signSecret" type="password" placeholder="shared secret" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">Base URL</span>
+                    <input id="signBase" type="text" value="https://test-verge-test.shop/large-probe.txt" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">Expiry (min)</span>
+                    <input id="signExpiry" type="number" value="10" min="1" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">Extra (optional)</span>
+                    <input id="signExtra" type="text" placeholder="ck=v1" class="mt-1 block w-full rounded border-gray-300" />
+                </label>
+            </div>
+            <div class="mt-3 flex gap-3 flex-wrap">
+                <button id="genSigned" class="px-4 py-2 bg-indigo-700 text-white rounded">Generate</button>
+                <button id="copySigned" class="px-4 py-2 bg-gray-700 text-white rounded">Copy URL</button>
+                <button id="openSigned" class="px-4 py-2 bg-emerald-700 text-white rounded">Open</button>
+            </div>
+            <div class="mt-3 text-sm">
+                <div><strong>Signed URL:</strong> <span id="signedOut" class="break-all"></span></div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-3">Progress</h2>
+            <div id="status" class="text-gray-700">Idle</div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold mb-3">Results</h2>
+            <div class="mb-4" id="ranked"></div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="px-3 py-2 text-left">Round</th>
+                            <th class="px-3 py-2 text-left">Target</th>
+                            <th class="px-3 py-2 text-left">Method</th>
+                            <th class="px-3 py-2 text-left">Time (ms)</th>
+                            <th class="px-3 py-2 text-left">Status</th>
+                            <th class="px-3 py-2 text-left">Cache</th>
+                            <th class="px-3 py-2 text-left">Encoding</th>
+                            <th class="px-3 py-2 text-left">Protocol</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+            <div class="mt-4" id="summary"></div>
+
+            <!-- CDN Functionality Summary -->
+            <div id="cdn-summary" class="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border" style="display:none;">
+                <h3 class="text-lg font-semibold mb-3 text-gray-800">🧪 CDN Functionality Analysis</h3>
+
+                <!-- Legend -->
+                <div class="flex flex-wrap gap-4 mb-4 text-sm">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-green-500 rounded"></div>
+                        <span>Working Well</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-yellow-500 rounded"></div>
+                        <span>Issues Found</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-red-500 rounded"></div>
+                        <span>Not Working</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-gray-400 rounded"></div>
+                        <span>Not Tested</span>
+                    </div>
+                </div>
+
+                <!-- Provider Analysis Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div id="direct-summary-card" class="bg-white p-4 rounded-lg border shadow-sm">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-gray-800">🖥️ Direct Server</h4>
+                            <span id="direct-overall-status" class="px-2 py-1 text-xs rounded-full bg-gray-100">Ready</span>
+                        </div>
+                        <div class="space-y-1 text-sm">
+                            <div class="flex justify-between">
+                                <span>Caching:</span>
+                                <span id="direct-caching" class="text-green-600">✅</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Security:</span>
+                                <span id="direct-security" class="text-green-600">✅</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Performance:</span>
+                                <span id="direct-performance" class="text-green-600">✅</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="verge-summary-card" class="bg-white p-4 rounded-lg border shadow-sm">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-green-700">🌐 VergeCloud CDN</h4>
+                            <span id="verge-overall-status" class="px-2 py-1 text-xs rounded-full bg-gray-100">Analyzing...</span>
+                        </div>
+                        <div class="space-y-1 text-sm">
+                            <div class="flex justify-between">
+                                <span>Caching:</span>
+                                <span id="verge-caching" class="text-gray-400">⏳</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Security:</span>
+                                <span id="verge-security" class="text-gray-400">⏳</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Performance:</span>
+                                <span id="verge-performance" class="text-gray-400">⏳</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="arvan-summary-card" class="bg-white p-4 rounded-lg border shadow-sm">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-purple-700">☁️ ArvanCloud CDN</h4>
+                            <span id="arvan-overall-status" class="px-2 py-1 text-xs rounded-full bg-gray-100">Analyzing...</span>
+                        </div>
+                        <div class="space-y-1 text-sm">
+                            <div class="flex justify-between">
+                                <span>Caching:</span>
+                                <span id="arvan-caching" class="text-gray-400">⏳</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Security:</span>
+                                <span id="arvan-security" class="text-gray-400">⏳</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Performance:</span>
+                                <span id="arvan-performance" class="text-gray-400">⏳</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Issues and Recommendations -->
+                <div id="cdn-analysis" class="space-y-4">
+                    <div id="cdn-issues" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4" style="display:none;">
+                        <h4 class="text-yellow-800 font-semibold mb-2">⚠️ Issues Detected</h4>
+                        <div id="issues-content" class="text-sm text-yellow-700 space-y-1"></div>
+                    </div>
+
+                    <div id="cdn-recommendations" class="bg-blue-50 border border-blue-200 rounded-lg p-4" style="display:none;">
+                        <h4 class="text-blue-800 font-semibold mb-2">💡 Recommendations</h4>
+                        <div id="recommendations-content" class="text-sm text-blue-700 space-y-1"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timer = null;
+        let round = 0;
+        const rows = [];
+
+        function nowMs() { return Math.round(performance.now()); }
+        function setActiveTab(name){
+            const tabs = { basics: document.getElementById('tab-basics'), advanced: document.getElementById('tab-advanced'), actions: document.getElementById('tab-actions') };
+            for (const k of Object.keys(tabs)){ if (tabs[k]) tabs[k].style.display = (k===name || k==='actions') ? '' : 'none'; }
+            document.querySelectorAll('.tab-btn').forEach(b=>{ b.classList.toggle('bg-blue-600', b.dataset.tab===name); b.classList.toggle('text-white', b.dataset.tab===name); b.classList.toggle('bg-gray-200', b.dataset.tab!==name); });
+        }
+
+        async function runOnce() {
+            const method = document.getElementById('method').value;
+            const urls = Array.from(document.querySelectorAll('.target:checked')).map(x => x.value);
+            const thisRound = ++round;
+            document.getElementById('status').textContent = `Running round ${thisRound}...`;
+
+            const startedAt = nowMs();
+            await Promise.all(urls.map(async (url) => {
+                const t0 = nowMs();
+                try {
+                    const res = await fetch(url, { mode: 'no-cors', method, cache: 'no-cache' });
+                    const t1 = nowMs();
+                    appendRow(thisRound, url, method, t1 - t0, 'OK');
+                } catch (e) {
+                    const t1 = nowMs();
+                    appendRow(thisRound, url, method, t1 - t0, 'CROSS-ORIGIN');
+                }
+            }));
+            const endedAt = nowMs();
+            document.getElementById('status').textContent = `Round ${thisRound} done in ${endedAt - startedAt} ms`;
+        }
+
+        function statusMeta(s){
+            if (s === 'OK') return { icon: '✅', bg: '#e8f5e8', fg: '#155724' };
+            if (s === 'ERR') return { icon: '❌', bg: '#fde8e8', fg: '#721c24' };
+            return { icon: '⚠️', bg: '#fff3cd', fg: '#856404' }; // unknown/opaque
+        }
+
+        function appendRow(roundNo, url, method, ms, status, extras = {}) {
+            rows.push({ round: roundNo, url, method, ms, status, ...extras });
+            const tr = document.createElement('tr');
+            const meta = statusMeta(status);
+            tr.innerHTML = `<td class="px-3 py-2">${roundNo}</td>
+                            <td class="px-3 py-2">${url}</td>
+                            <td class="px-3 py-2">${method}</td>
+                            <td class="px-3 py-2">${ms}</td>
+                            <td class="px-3 py-2"><span style="padding:2px 8px; border-radius:10px; background:${meta.bg}; color:${meta.fg};">${meta.icon} ${status}</span></td>
+                            <td class="px-3 py-2">${extras.cache || ''}</td>
+                            <td class="px-3 py-2">${extras.encoding || ''}</td>
+                            <td class="px-3 py-2">${extras.protocol || ''}</td>`;
+            document.getElementById('tbody').appendChild(tr);
+            renderSummary();
+            renderRanked();
+        }
+
+        function groupBy(arr, fnKey){
+            const out = new Map();
+            for (const item of arr){
+                const k = fnKey(item);
+                if (!out.has(k)) out.set(k, []);
+                out.get(k).push(item);
+            }
+            return out;
+        }
+
+        function percentile(values, p){
+            if (!values.length) return 0;
+            const s = [...values].sort((a,b)=>a-b);
+            const idx = Math.min(s.length - 1, Math.max(0, Math.floor((p/100) * s.length)));
+            return s[idx];
+        }
+
+        function analyzeCDNFunctionality(){
+            const summaryDiv = document.getElementById('cdn-summary');
+            if (!rows.length) {
+                summaryDiv.style.display = 'none';
+                return;
+            }
+
+            // Group results by provider
+            const providerResults = {
+                direct: { caching: [], security: [], performance: [], totalTests: 0 },
+                verge: { caching: [], security: [], performance: [], totalTests: 0 },
+                arvan: { caching: [], security: [], performance: [], totalTests: 0 }
+            };
+
+            // Analyze each result
+            rows.forEach(row => {
+                const url = row.url;
+                const status = row.status;
+                let provider = 'direct';
+                let category = 'performance'; // default
+
+                // Determine provider
+                if (url.includes('test-verge-test.shop')) provider = 'verge';
+                else if (url.includes('test20250316.ir')) provider = 'arvan';
+
+                // Determine category based on endpoint
+                if (url.includes('/cache/') || url.includes('/api/time') || url.includes('/api/stale')) {
+                    category = 'caching';
+                } else if (url.includes('/security/') || url.includes('/redirect/') || url.includes('/protected/')) {
+                    category = 'security';
+                } else if (url.includes('/large-probe.txt') || url.includes('HEAD')) {
+                    category = 'performance';
+                }
+
+                providerResults[provider][category].push({ status, url });
+                providerResults[provider].totalTests++;
+            });
+
+            // Calculate scores and update UI
+            Object.keys(providerResults).forEach(provider => {
+                const results = providerResults[provider];
+                const totalTests = results.totalTests;
+
+                if (totalTests === 0) {
+                    // No tests for this provider yet
+                    updateProviderStatus(provider, 'gray', '⏳', '⏳', '⏳', 'Not Tested');
+                    return;
+                }
+
+                // Calculate success rates for each category
+                const cachingSuccess = calculateSuccessRate(results.caching);
+                const securitySuccess = calculateSuccessRate(results.security);
+                const performanceSuccess = calculateSuccessRate(results.performance);
+
+                // Determine overall status
+                const avgSuccess = (cachingSuccess.rate + securitySuccess.rate + performanceSuccess.rate) / 3;
+                let overallStatus, overallColor;
+                if (avgSuccess >= 0.9) {
+                    overallStatus = 'Excellent'; overallColor = 'green';
+                } else if (avgSuccess >= 0.7) {
+                    overallStatus = 'Good'; overallColor = 'blue';
+                } else if (avgSuccess >= 0.5) {
+                    overallStatus = 'Issues'; overallColor = 'yellow';
+                } else {
+                    overallStatus = 'Problems'; overallColor = 'red';
+                }
+
+                // Update UI
+                updateProviderStatus(
+                    provider,
+                    overallColor,
+                    getStatusIcon(cachingSuccess.rate),
+                    getStatusIcon(securitySuccess.rate),
+                    getStatusIcon(performanceSuccess.rate),
+                    overallStatus
+                );
+            });
+
+            // Generate issues and recommendations
+            generateIssuesAndRecommendations(providerResults);
+
+            // Show the summary
+            summaryDiv.style.display = 'block';
+        }
+
+        function calculateSuccessRate(tests) {
+            if (tests.length === 0) return { rate: 1, total: 0, success: 0 };
+            const success = tests.filter(t => t.status === 'OK').length;
+            return { rate: success / tests.length, total: tests.length, success };
+        }
+
+        function getStatusIcon(rate) {
+            if (rate >= 0.9) return '✅';
+            if (rate >= 0.7) return '⚠️';
+            if (rate >= 0.5) return '🟡';
+            return '❌';
+        }
+
+        function updateProviderStatus(provider, overallColor, cachingIcon, securityIcon, performanceIcon, overallText) {
+            const statusEl = document.getElementById(`${provider}-overall-status`);
+            const cachingEl = document.getElementById(`${provider}-caching`);
+            const securityEl = document.getElementById(`${provider}-security`);
+            const performanceEl = document.getElementById(`${provider}-performance`);
+
+            // Update status badge
+            statusEl.textContent = overallText;
+            statusEl.className = `px-2 py-1 text-xs rounded-full bg-${overallColor}-100 text-${overallColor}-800`;
+
+            // Update category icons
+            cachingEl.textContent = cachingIcon;
+            cachingEl.className = cachingIcon === '✅' ? 'text-green-600' :
+                                 cachingIcon === '⚠️' ? 'text-yellow-600' :
+                                 cachingIcon === '🟡' ? 'text-yellow-500' : 'text-red-600';
+
+            securityEl.textContent = securityIcon;
+            securityEl.className = securityIcon === '✅' ? 'text-green-600' :
+                                  securityIcon === '⚠️' ? 'text-yellow-600' :
+                                  securityIcon === '🟡' ? 'text-yellow-500' : 'text-red-600';
+
+            performanceEl.textContent = performanceIcon;
+            performanceEl.className = performanceIcon === '✅' ? 'text-green-600' :
+                                     performanceIcon === '⚠️' ? 'text-yellow-600' :
+                                     performanceIcon === '🟡' ? 'text-yellow-500' : 'text-red-600';
+        }
+
+        function generateIssuesAndRecommendations(providerResults) {
+            const issues = [];
+            const recommendations = [];
+
+            Object.keys(providerResults).forEach(provider => {
+                const results = providerResults[provider];
+                const providerName = provider === 'direct' ? 'Direct Server' :
+                                   provider === 'verge' ? 'VergeCloud CDN' : 'ArvanCloud CDN';
+
+                // Check for issues
+                ['caching', 'security', 'performance'].forEach(category => {
+                    const successRate = calculateSuccessRate(results[category]);
+                    if (successRate.rate < 0.8 && successRate.total > 0) {
+                        const failedTests = results[category].filter(t => t.status !== 'OK');
+                        if (failedTests.length > 0) {
+                            issues.push(`${providerName}: ${failedTests.length} ${category} test(s) failed`);
+                        }
+                    }
+                });
+
+                // Generate recommendations
+                if (provider !== 'direct') {
+                    const totalSuccess = (calculateSuccessRate(results.caching).rate +
+                                        calculateSuccessRate(results.security).rate +
+                                        calculateSuccessRate(results.performance).rate) / 3;
+
+                    if (totalSuccess < 0.7) {
+                        recommendations.push(`Review ${providerName} configuration - multiple features not working as expected`);
+                    }
+
+                    if (calculateSuccessRate(results.security).rate < 0.8) {
+                        recommendations.push(`Check ${providerName} WAF/security rules configuration`);
+                    }
+
+                    if (calculateSuccessRate(results.caching).rate < 0.8) {
+                        recommendations.push(`Review ${providerName} caching rules and cache key configuration`);
+                    }
+                }
+            });
+
+            // Update UI
+            const issuesDiv = document.getElementById('cdn-issues');
+            const issuesContent = document.getElementById('issues-content');
+            const recommendationsDiv = document.getElementById('cdn-recommendations');
+            const recommendationsContent = document.getElementById('recommendations-content');
+
+            if (issues.length > 0) {
+                issuesContent.innerHTML = issues.map(issue => `<div>• ${issue}</div>`).join('');
+                issuesDiv.style.display = 'block';
+            } else {
+                issuesDiv.style.display = 'none';
+            }
+
+            if (recommendations.length > 0) {
+                recommendationsContent.innerHTML = recommendations.map(rec => `<div>• ${rec}</div>`).join('');
+                recommendationsDiv.style.display = 'block';
+            } else {
+                recommendationsDiv.style.display = 'none';
+            }
+        }
+
+        function renderSummary(){
+            const el = document.getElementById('summary');
+            if (!rows.length){ el.innerHTML = ''; return; }
+            // Aggregate by (host, scheme)
+            const byTarget = groupBy(rows, r => {
+                try { const u = new URL(r.url); return `${u.protocol}//${u.host}`; } catch { return r.url; }
+            });
+            let html = '<div class="text-sm"><div class="font-medium mb-1">Summary (p50/p90, successes)</div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">';
+            for (const [k, list] of byTarget){
+                const oks = list.filter(r => r.status === 'OK');
+                const times = oks.map(r => r.ms);
+                const p50 = percentile(times, 50);
+                const p90 = percentile(times, 90);
+                html += `<div class="border rounded p-2"><div class="font-mono text-xs text-gray-600">${k}</div><div><span class="font-semibold">p50:</span> ${p50 || '-'} ms &nbsp; <span class="font-semibold">p90:</span> ${p90 || '-'} ms</div><div class="text-xs text-gray-600">${oks.length}/${list.length} OK</div></div>`;
+            }
+            html += '</div></div>';
+            el.innerHTML = html;
+
+            // Show CDN functionality analysis if we have results
+            analyzeCDNFunctionality();
+        }
+
+        function renderRanked(){
+            const el = document.getElementById('ranked');
+            const by = groupBy(rows.filter(r=>r.status==='OK'), r => { try{ const u=new URL(r.url); return `${u.protocol}//${u.host}`;}catch{ return r.url; } });
+            const cards=[]; for (const [k,list] of by){ const times=list.map(r=>r.ms); const p50=percentile(times,50); const p90=percentile(times,90); cards.push({k,p50,p90}); }
+            cards.sort((a,b)=>a.p50-b.p50);
+            let html='';
+            cards.forEach((c,i)=>{ const w=Math.min(100, Math.max(5, Math.round(100*(1-(c.p50/(c.p90||c.p50||1)))))); html+=`<div class="flex items-center gap-3 mb-2"><div class="w-8 text-xs">#${i+1}</div><div class="flex-1"><div class="font-mono text-xs text-gray-600">${c.k}</div><div class="h-2 bg-gray-200 rounded"><div class="h-2 bg-green-500 rounded" style="width:${w}%;"></div></div></div><div class="text-xs">p50 ${c.p50||'-'}ms</div><div class="text-xs text-gray-600">p90 ${c.p90||'-'}ms</div></div>`; });
+            el.innerHTML = html;
+        }
+
+        // --- API / Redirect / Hotlink tests ---
+        async function runApiSuite(){
+            const baseHosts = [
+                'http://142.93.208.111', 'https://142.93.208.111',
+                'http://test-verge-test.shop', 'https://test-verge-test.shop',
+                'http://test20250316.ir', 'https://test20250316.ir'
+            ];
+            const roundNo = ++round;
+            document.getElementById('status').textContent = `API suite round ${roundNo}...`;
+            const tests = [];
+            for (const host of baseHosts){
+                const api = `${host}/api/time?ttl=60&_=${Date.now()}`;
+                const r301 = `${host}/redirect/301`;
+                const r302 = `${host}/redirect/302`;
+                tests.push({ url: api, kind: 'GET', ref: '' });
+                tests.push({ url: r301, kind: 'HEAD', ref: '' });
+                tests.push({ url: r302, kind: 'HEAD', ref: '' });
+                // Hotlink allow (same-site referer for origin only)
+                tests.push({ url: `${host}/protected.txt`, kind: 'HEAD', ref: host });
+                // Hotlink deny
+                tests.push({ url: `${host}/protected.txt`, kind: 'HEAD', ref: 'http://evil.tld/' });
+            }
+            await Promise.all(tests.map(async t => {
+                const t0 = nowMs();
+                try{
+                    const headers = { 'Cache-Control': 'no-cache' };
+                    const opts = { method: t.kind, mode: 'no-cors', cache: 'no-cache' };
+                    try{ if (t.ref) opts['referrer'] = t.ref; }catch(_){}
+                    await fetch(t.url, opts);
+                    appendRow(roundNo, t.url, t.kind, nowMs()-t0, 'OK');
+                }catch(e){
+                    appendRow(roundNo, t.url, t.kind, nowMs()-t0, 'ERR');
+                }
+            }));
+            document.getElementById('status').textContent = `API suite round ${roundNo} done`;
+        }
+
+        // --- Cache validation tests (ETag/IMS) ---
+        async function runCacheValidation(){
+            const targets = [
+                'https://test-verge-test.shop/',
+                'https://test20250316.ir/',
+                'https://test-verge-test.shop/large-probe.txt',
+                'https://test20250316.ir/large-probe.txt'
+            ];
+            const roundNo = ++round;
+            document.getElementById('status').textContent = `Cache validation ${roundNo}...`;
+            for (const url of targets){
+                try{
+                    // First fetch to capture validators via CORS if possible; fallback to resource timing
+                    let etag = '', lastMod = '';
+                    try{
+                        const r1 = await fetch(url, { method: 'GET', mode: 'cors', cache:'no-cache' });
+                        etag = r1.headers.get('ETag') || '';
+                        lastMod = r1.headers.get('Last-Modified') || '';
+                        appendRow(roundNo, url, 'GET', 0, 'OK', { cache: r1.headers.get('Age') || '' });
+                    }catch(_){
+                        appendRow(roundNo, url, 'GET', 0, 'CROSS-ORIGIN');
+                    }
+                    // Conditional requests
+                    const condHeaders = {};
+                    if (etag) condHeaders['If-None-Match'] = etag;
+                    if (lastMod) condHeaders['If-Modified-Since'] = lastMod;
+                    const t0 = nowMs();
+                    try{
+                        await fetch(url + (url.includes('?')?'&':'?')+ 'cv=' + Date.now(), { method:'GET', headers: condHeaders, mode:'no-cors', cache:'no-cache' });
+                        appendRow(roundNo, url, 'COND', nowMs()-t0, 'OK');
+                    }catch(e){
+                        appendRow(roundNo, url, 'COND', nowMs()-t0, 'ERR');
+                    }
+                }catch(_){
+                    appendRow(roundNo, url, 'GET', 0, 'ERR');
+                }
+            }
+            document.getElementById('status').textContent = `Cache validation ${roundNo} done`;
+        }
+
+        document.getElementById('apiBtn') && document.getElementById('apiBtn').addEventListener('click', runApiSuite);
+        document.getElementById('cacheBtn') && document.getElementById('cacheBtn').addEventListener('click', runCacheValidation);
+
+        // Compression test: compute encoded/decoded ratio via Resource Timing
+        async function runCompression(){
+            const urls = [
+                'https://test-verge-test.shop/large-probe.txt',
+                'https://test20250316.ir/large-probe.txt',
+                'https://142.93.208.111/large-probe.txt'
+            ];
+            const roundNo = ++round;
+            document.getElementById('status').textContent = `Compression test ${roundNo}...`;
+            performance.clearResourceTimings();
+            await Promise.all(urls.map(async (u)=>{
+                const t0 = nowMs();
+                try{ await fetch(u + '?c=' + Date.now(), { mode:'no-cors', cache:'no-cache' }); }catch(_){ }
+                const deadline = Date.now()+800; let entry=null;
+                while(Date.now()<deadline){ const es=performance.getEntriesByType('resource'); entry=es.find(e=>e.name.startsWith(u)); if(entry) break; await new Promise(r=>setTimeout(r,50)); }
+                let ratio='';
+                if (entry && entry.decodedBodySize && entry.encodedBodySize){
+                    ratio = (entry.encodedBodySize/entry.decodedBodySize).toFixed(3);
+                }
+                appendRow(roundNo, u, 'GET', nowMs()-t0, 'OK', { encoding: ratio?`ratio=${ratio}`:'' , protocol: entry&&entry.nextHopProtocol||''});
+            }));
+            document.getElementById('status').textContent = `Compression test ${roundNo} done`;
+        }
+        document.getElementById('compressBtn') && document.getElementById('compressBtn').addEventListener('click', runCompression);
+
+        // Protocol test: capture nextHopProtocol
+        async function runProtocol(){
+            const urls = [
+                'https://test-verge-test.shop/',
+                'https://test20250316.ir/',
+                'https://142.93.208.111/'
+            ];
+            const roundNo = ++round; performance.clearResourceTimings();
+            await Promise.all(urls.map(async u=>{ try{ await fetch(u+'?p='+Date.now(), {mode:'no-cors', cache:'no-cache'});}catch(_){}}));
+            await new Promise(r=>setTimeout(r,400));
+            urls.forEach(u=>{
+                const e = performance.getEntriesByType('resource').find(x=>x.name.startsWith(u));
+                appendRow(roundNo, u, 'PROTO', 0, 'OK', { protocol: e&&e.nextHopProtocol||'' });
+            });
+        }
+        document.getElementById('protoBtn') && document.getElementById('protoBtn').addEventListener('click', runProtocol);
+
+        // Range request test: attempt partial GET with Range header (works same-origin; opaque otherwise)
+        async function runRange(){
+            const urls = [
+                'https://142.93.208.111/large-probe.txt',
+                'https://test-verge-test.shop/large-probe.txt',
+                'https://test20250316.ir/large-probe.txt'
+            ];
+            const roundNo = ++round;
+            for (const u of urls){
+                const t0 = nowMs();
+                try { await fetch(u+'?r='+Date.now(), { method:'GET', mode:'no-cors', cache:'no-cache', headers: { 'Range':'bytes=0-199' }}); appendRow(roundNo,u,'RANGE', nowMs()-t0, 'OK'); }
+                catch(_){ appendRow(roundNo,u,'RANGE', nowMs()-t0, 'ERR'); }
+            }
+        }
+        document.getElementById('rangeBtn') && document.getElementById('rangeBtn').addEventListener('click', runRange);
+
+        // Stale tests hitting /api/stale on both CDNs
+        async function runStale(){
+            const urls = [
+                'https://test-verge-test.shop/api/stale',
+                'https://test20250316.ir/api/stale'
+            ];
+            const roundNo = ++round;
+            for (const u of urls){
+                const t0 = nowMs();
+                try { await fetch(u+'?s='+Date.now(), { mode:'no-cors', cache:'no-cache' }); appendRow(roundNo,u,'GET', nowMs()-t0, 'OK'); }
+                catch(_){ appendRow(roundNo,u,'GET', nowMs()-t0, 'ERR'); }
+            }
+        }
+        document.getElementById('staleBtn') && document.getElementById('staleBtn').addEventListener('click', runStale);
+        document.getElementById('clearBtn').addEventListener('click', ()=>{ rows.length=0; document.getElementById('tbody').innerHTML=''; renderSummary(); renderRanked(); });
+
+        document.querySelectorAll('.tab-btn').forEach(b=> b.addEventListener('click', ()=> setActiveTab(b.dataset.tab)));
+        setActiveTab('basics');
+
+        // Presets and Run Selected
+        const presetMap = {
+            performance: ['compression','protocol','range'],
+            validation: ['cache','stale','cachekey','cache-adv','security'],
+            'cdn-rules': ['api','rate','geo']
+        };
+        document.querySelectorAll('[data-preset]').forEach(btn=> btn.addEventListener('click', ()=>{
+            const key = btn.getAttribute('data-preset');
+            const picks = new Set(presetMap[key]||[]);
+            document.querySelectorAll('.preset-test').forEach(cb=> cb.checked = picks.has(cb.value));
+        }));
+        document.getElementById('runSelected').addEventListener('click', async ()=>{
+            const selected = Array.from(document.querySelectorAll('.preset-test:checked')).map(x=>x.value);
+            for (const s of selected){
+                if (s==='api') await runApiSuite();
+                if (s==='cache') await runCacheValidation();
+                if (s==='compression') await runCompression();
+                if (s==='protocol') await runProtocol();
+                if (s==='range') await runRange();
+                if (s==='stale') await runStale();
+                if (s==='cachekey') await runCacheKey();
+                if (s==='cache-adv') await runAdvancedCaching();
+                if (s==='security') await runSecurityTests();
+                if (s==='rate') await runRateBurst();
+                if (s==='geo') await runGeo();
+            }
+        });
+
+        // Run everything: Comprehensive (deepProbe+agent) + all feature tests
+        async function runAllTests(){
+            document.getElementById('status').textContent = 'Running all tests...';
+            try { await runComprehensive(); } catch(_){}
+            try { await runCompression(); } catch(_){}
+            try { await runProtocol(); } catch(_){}
+            try { await runRange(); } catch(_){}
+            try { await runStale(); } catch(_){}
+            try { await runCacheValidation(); } catch(_){}
+            try { await runApiSuite(); } catch(_){}
+            try { await runCacheKey(); } catch(_){}
+            try { await runRateBurst(); } catch(_){}
+            try { await runGeo(); } catch(_){}
+            document.getElementById('status').textContent = 'All tests completed';
+        }
+        document.getElementById('runAllBtn').addEventListener('click', runAllTests);
+
+        // Select All button functionality
+        document.getElementById('selectAllBtn').addEventListener('click', function(){
+            // Select all preset tests
+            document.querySelectorAll('.preset-test').forEach(cb => cb.checked = true);
+            // Select all group toggles
+            document.querySelectorAll('.toggle-group').forEach(cb => cb.checked = true);
+            document.querySelectorAll('.toggle-scheme').forEach(cb => cb.checked = true);
+            document.querySelectorAll('.toggle-provider').forEach(cb => cb.checked = true);
+            // Select all target checkboxes
+            document.querySelectorAll('.target').forEach(cb => cb.checked = true);
+        });
+
+        // Cache key variants: query permutations to see cache splits
+        async function runCacheKey(){
+            const bases = ['https://test-verge-test.shop/', 'https://test20250316.ir/'];
+            const variants = ['ck=v1','ck=v2','ck=v1&d=mobile','ck=v2&nocache=1'];
+            const roundNo = ++round;
+            for (const b of bases){
+                for (const v of variants){
+                    const url = b + (b.includes('?')?'&':'?') + v + '&t=' + Date.now();
+                    const t0 = nowMs();
+                    try { const r = await fetch(url, { mode:'no-cors', cache:'no-cache' }); appendRow(roundNo, url, 'GET', nowMs()-t0, 'OK'); }
+                    catch(_){ appendRow(roundNo, url, 'GET', nowMs()-t0, 'ERR'); }
+                }
+            }
+        }
+        document.getElementById('cacheKeyBtn') && document.getElementById('cacheKeyBtn').addEventListener('click', runCacheKey);
+
+        // Rate limiting: burst N requests quickly to CDN roots
+        async function runRateBurst(){
+            const targets = ['https://test-verge-test.shop/','https://test20250316.ir/'];
+            const roundNo = ++round; const burst=25;
+            await Promise.all(targets.map(async (t)=>{
+                const ps=[]; for (let i=0;i<burst;i++){ ps.push(fetch(t+'?rb='+Date.now()+'-'+i,{mode:'no-cors',cache:'no-cache'})); }
+                const t0 = nowMs();
+                try { await Promise.allSettled(ps); appendRow(roundNo, t, 'BURSTx'+burst, nowMs()-t0, 'OK'); }
+                catch(_){ appendRow(roundNo, t, 'BURSTx'+burst, nowMs()-t0, 'ERR'); }
+            }));
+        }
+        document.getElementById('rateBtn') && document.getElementById('rateBtn').addEventListener('click', runRateBurst);
+
+        // Geo capture using CORS on /api/time (reads X-Geo-Country)
+        async function runGeo(){
+            const urls=['https://test-verge-test.shop/api/time?ttl=0','https://test20250316.ir/api/time?ttl=0'];
+            const roundNo = ++round;
+            for (const u of urls){
+                const t0 = nowMs();
+                try { const r = await fetch(u+'&g='+Date.now(), {mode:'cors',cache:'no-cache'}); const geo = r.headers.get('X-Geo-Country')||''; appendRow(roundNo, u, 'GET', nowMs()-t0, 'OK', { cache: '', encoding: '', protocol: geo }); }
+                catch(_){ appendRow(roundNo, u, 'GET', nowMs()-t0, 'ERR'); }
+            }
+        }
+        document.getElementById('geoBtn') && document.getElementById('geoBtn').addEventListener('click', runGeo);
+
+        // Advanced Caching Tests for VergeCloud
+        async function runAdvancedCaching(){
+            const bases = ['https://test-verge-test.shop/', 'https://test20250316.ir/'];
+            const roundNo = ++round;
+            document.getElementById('status').textContent = `Advanced caching tests ${roundNo}...`;
+
+            const testUrls = [
+                // Cache key variants
+                '/cache/key-variant',
+                '/cache/key-variant/mobile',
+                '/cache/key-variant/desktop',
+                // Query string tests
+                '/cache/query-ignore?param=test&another=value',
+                '/cache/query-include?param=test&another=value',
+                // Cookie tests (simulate different cookies)
+                '/cache/cookie-test',
+                // User-Agent tests
+                '/cache/ua-test',
+                // Cache bypass tests
+                '/cache/bypass/nocache',
+                '/cache/bypass/private',
+                // Dynamic content
+                '/cache/dynamic'
+            ];
+
+            const tests = [];
+            for (const base of bases) {
+                for (const testUrl of testUrls) {
+                    const fullUrl = base + testUrl + (testUrl.includes('?') ? '&' : '?') + '_t=' + Date.now();
+                    tests.push({ url: fullUrl, base, endpoint: testUrl });
+                }
+            }
+
+            await Promise.all(tests.map(async t => {
+                const t0 = nowMs();
+                try {
+                    const response = await fetch(t.url, {
+                        mode: 'cors',
+                        cache: 'no-cache',
+                        headers: {
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+                    const cacheKey = response.headers.get('X-Cache-Key') || 'unknown';
+                    const cacheControl = response.headers.get('Cache-Control') || 'none';
+                    appendRow(roundNo, t.url, 'GET', nowMs()-t0, `OK (Key:${cacheKey}, CC:${cacheControl})`);
+                } catch(e) {
+                    appendRow(roundNo, t.url, 'GET', nowMs()-t0, 'ERR');
+                }
+            }));
+
+            document.getElementById('status').textContent = `Advanced caching tests ${roundNo} done`;
+        }
+
+        // Security & WAF Tests for VergeCloud
+        async function runSecurityTests(){
+            const bases = ['https://test-verge-test.shop/', 'https://test20250316.ir/'];
+            const roundNo = ++round;
+            document.getElementById('status').textContent = `Security/WAF tests ${roundNo}...`;
+
+            const testUrls = [
+                // SQL injection attempts
+                '/security/sql/union',
+                '/security/sql/dump',
+                // XSS attempts
+                '/security/xss/script',
+                '/security/xss/img',
+                // Path traversal
+                '/security/traversal/etc',
+                '/security/traversal/parent',
+                // Command injection
+                '/security/cmd/exec',
+                // Bot detection
+                '/security/bot/bad-ua',
+                // Rate limiting
+                '/security/rate-test',
+                // Admin access
+                '/security/suspicious/admin',
+                '/security/suspicious/wp-admin',
+                // Header injection
+                '/security/header/crlf'
+            ];
+
+            const maliciousUserAgents = [
+                'sqlmap/1.0',
+                'nikto',
+                'dirbuster',
+                'acunetix',
+                'nessus',
+                'masscan',
+                'zgrab'
+            ];
+
+            const tests = [];
+            for (const base of bases) {
+                for (const testUrl of testUrls) {
+                    const fullUrl = base + testUrl + '?_t=' + Date.now();
+                    tests.push({ url: fullUrl, endpoint: testUrl, ua: null });
+
+                    // Add bot detection tests with malicious UAs
+                    if (testUrl === '/security/bot/bad-ua') {
+                        for (const ua of maliciousUserAgents) {
+                            tests.push({ url: fullUrl, endpoint: testUrl, ua: ua });
+                        }
+                    }
+                }
+            }
+
+            await Promise.all(tests.map(async t => {
+                const t0 = nowMs();
+                try {
+                    const headers = { 'Cache-Control': 'no-cache' };
+                    if (t.ua) headers['User-Agent'] = t.ua;
+
+                    const response = await fetch(t.url, {
+                        mode: 'cors',
+                        cache: 'no-cache',
+                        headers: headers
+                    });
+
+                    const testType = response.headers.get('X-Test-Type') || 'unknown';
+                    const status = response.status;
+                    const shouldBeBlocked = testType !== 'unknown'; // If we get our custom header, it reached origin
+
+                    let result = `OK (Status:${status}, Type:${testType})`;
+                    if (shouldBeBlocked && status < 400) {
+                        result += ' ⚠️ WAF NOT BLOCKING';
+                    } else if (shouldBeBlocked && status >= 400) {
+                        result += ' ✅ WAF BLOCKED';
+                    }
+
+                    appendRow(roundNo, t.url + (t.ua ? ` [UA:${t.ua}]` : ''), 'GET', nowMs()-t0, result);
+                } catch(e) {
+                    // Network errors might indicate WAF blocking
+                    appendRow(roundNo, t.url + (t.ua ? ` [UA:${t.ua}]` : ''), 'GET', nowMs()-t0, 'BLOCKED (Network Error)');
+                }
+            }));
+
+            document.getElementById('status').textContent = `Security/WAF tests ${roundNo} done`;
+        }
+
+        function start() {
+            if (timer) return;
+            round = 0;
+            document.getElementById('tbody').innerHTML = '';
+            rows.length = 0;
+            const interval = parseInt(document.getElementById('interval').value, 10) || 5000;
+            const totalRounds = parseInt(document.getElementById('rounds').value, 10) || 5;
+            let done = 0;
+            runOnce().then(() => { done++; });
+            timer = setInterval(async () => {
+                if (done >= totalRounds) { stop(); return; }
+                await runOnce();
+                done++;
+            }, interval);
+            document.getElementById('status').textContent = 'Started';
+        }
+
+        function stop() {
+            if (timer) clearInterval(timer);
+            timer = null;
+            document.getElementById('status').textContent = 'Stopped';
+        }
+
+        function downloadCsv() {
+            const header = 'round,url,method,time_ms,status,cache,encoding,protocol\n';
+            const body = rows.map(r => `${r.round},${r.url},${r.method},${r.ms},${r.status},${r.cache || ''},${r.encoding || ''},${r.protocol || ''}`).join('\n');
+            // Append aggregates per target (p50/p90)
+            const byTarget = groupBy(rows, r => { try{ const u=new URL(r.url); return `${u.protocol}//${u.host}`; }catch{ return r.url; } });
+            let agg = '\n\n# aggregates target,p50_ms,p90_ms,ok,total\n';
+            for (const [k, list] of byTarget){ const oks=list.filter(r=>r.status==='OK'); const times=oks.map(r=>r.ms); agg += `${k},${percentile(times,50)},${percentile(times,90)},${oks.length},${list.length}\n`; }
+            const blob = new Blob([header + body + agg], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cdn-test-results.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Deep probe using CORS headers (preferred) + Resource Timing fallback
+        async function deepProbe() {
+            const urls = Array.from(document.querySelectorAll('.target:checked')).map(x => x.value);
+            const thisRound = ++round;
+            document.getElementById('status').textContent = `Deep probe ${thisRound}...`;
+            performance.clearResourceTimings();
+            await Promise.all(urls.map(async (baseUrl) => {
+                const cacheBustedUrl = baseUrl + (baseUrl.includes('?') ? '&' : '?') + 'rt=' + Date.now();
+                const t0 = nowMs();
+                let cache = '', encoding = '', protocol = '';
+                try {
+                    // Try CORS-enabled fetch first (origin sets ACAO: *). If CORS works, we can read headers directly.
+                    const res = await fetch(cacheBustedUrl, { mode: 'cors', method: 'GET', cache: 'no-cache' });
+                    // Read cache indicators
+                    const cfCache = res.headers.get('CF-Cache-Status');
+                    const xCache = res.headers.get('X-Cache') || res.headers.get('X-Cache-Status');
+                    const age = res.headers.get('Age');
+                    const acceptRanges = res.headers.get('Accept-Ranges');
+                    const contentEncoding = res.headers.get('Content-Encoding');
+                    if (contentEncoding) {
+                        encoding = contentEncoding;
+                    }
+                    if (cfCache) cache = cfCache;
+                    else if (xCache) cache = xCache;
+                    else if (age && parseInt(age, 10) > 0) cache = 'HIT (Age>0)';
+                    if (!cache) cache = acceptRanges ? 'EDGE (ranges ok)' : 'UNKNOWN';
+
+                    // Resource Timing for protocol and compression inference (wait briefly for the entry)
+                    const match = await waitForResourceTiming(cacheBustedUrl, baseUrl, 500);
+                    if (match) {
+                        protocol = match.nextHopProtocol || '';
+                        if (!encoding && match.decodedBodySize && match.encodedBodySize) {
+                            const ratio = match.encodedBodySize / match.decodedBodySize;
+                            if (ratio < 0.9) { encoding = 'compressed'; } else { encoding = 'none/unknown'; }
+                        }
+                        if (!cache && typeof match.transferSize === 'number') {
+                            if (match.transferSize === 0) cache = 'browser-cache';
+                            else if (match.transferSize < 400) cache = 'revalidated';
+                            else cache = 'network';
+                        }
+                    }
+                    const t1 = nowMs();
+                    appendRow(thisRound, baseUrl, 'GET', t1 - t0, 'OK', { cache, encoding, protocol });
+                } catch (e) {
+                    // Fallback: try no-cors to at least capture Resource Timing
+                    try {
+                        await fetch(cacheBustedUrl, { mode: 'no-cors', method: 'GET', cache: 'no-cache' });
+                    } catch (_) {}
+                    const match = await waitForResourceTiming(cacheBustedUrl, baseUrl, 500);
+                    if (match) { protocol = match.nextHopProtocol || ''; }
+                    const t1 = nowMs();
+                    appendRow(thisRound, baseUrl, 'GET', t1 - t0, 'CROSS-ORIGIN', { cache, encoding, protocol });
+                }
+            }));
+            document.getElementById('status').textContent = `Deep probe ${thisRound} done`;
+        }
+
+        // Wait briefly for a matching Resource Timing entry to appear
+        function waitForResourceTiming(cacheBustedUrl, baseUrl, timeoutMs) {
+            const deadline = Date.now() + (timeoutMs || 300);
+            const candidates = [cacheBustedUrl, baseUrl];
+            return new Promise((resolve) => {
+                const check = () => {
+                    const entries = performance.getEntriesByType('resource');
+                    for (let i = entries.length - 1; i >= 0; i--) {
+                        const name = entries[i].name;
+                        if (candidates.some(u => name === u || name.startsWith(u)) || name.includes('large-probe.txt')) {
+                            resolve(entries[i]);
+                            return;
+                        }
+                    }
+                    if (Date.now() > deadline) { resolve(null); return; }
+                    setTimeout(check, 50);
+                };
+                setTimeout(check, 0);
+            });
+        }
+
+        // Same-origin agent approach: open CDN iframes that run timing and postMessage back
+        function runAgent() {
+            const targets = Array.from(document.querySelectorAll('.target:checked')).map(x => x.value);
+            const iframes = [];
+            const thisRound = ++round;
+            document.getElementById('status').textContent = `Agent probe ${thisRound}...`;
+            const expected = new Set(targets);
+            function onMsg(ev){
+                const d = ev.data || {};
+                if (d.type === 'cdn-proto' && expected.has(d.url)){
+                    expected.delete(d.url);
+                    appendRow(thisRound, d.url, 'GET', 0, 'OK', { protocol: d.protocol || '', cache: '', encoding: '' });
+                    if (expected.size === 0){
+                        window.removeEventListener('message', onMsg);
+                        document.getElementById('status').textContent = `Agent probe ${thisRound} done`;
+                        iframes.forEach(f => f.remove());
+                    }
+                }
+            }
+            window.addEventListener('message', onMsg);
+            targets.forEach((u) => {
+                try {
+                    const o = new URL(u);
+                    const agent = `${o.protocol}//${o.host}/tests/agent.html?url=${encodeURIComponent(u)}`;
+                    const f = document.createElement('iframe');
+                    f.src = agent; f.width = 0; f.height = 0; f.style.display = 'none';
+                    document.body.appendChild(f); iframes.push(f);
+                } catch (_) {}
+            });
+        }
+        
+        async function runComprehensive() {
+            // First run deepProbe to capture cache/encoding and attempt protocol via TAO
+            await deepProbe();
+            // Then run agent to guarantee protocol capture via same-origin iframes
+            runAgent();
+        }
+        document.getElementById('comprehensiveBtn').addEventListener('click', runComprehensive);
+
+        document.getElementById('startBtn').addEventListener('click', start);
+        document.getElementById('stopBtn').addEventListener('click', stop);
+        document.getElementById('downloadBtn').addEventListener('click', downloadCsv);
+
+        // --- Group toggles for Targets ---
+        function applyToggles(){
+            const typeOn = new Set(Array.from(document.querySelectorAll('.toggle-group:checked')).map(x=>x.dataset.group));
+            const schemeOn = new Set(Array.from(document.querySelectorAll('.toggle-scheme:checked')).map(x=>x.dataset.scheme));
+            const provOn = new Set(Array.from(document.querySelectorAll('.toggle-provider:checked')).map(x=>x.dataset.provider));
+            document.querySelectorAll('.target').forEach(cb=>{
+                const t = cb.getAttribute('data-type');
+                const s = cb.getAttribute('data-scheme');
+                const p = cb.getAttribute('data-provider');
+                cb.checked = typeOn.has(t) && schemeOn.has(s) && provOn.has(p);
+            });
+        }
+        document.querySelectorAll('.toggle-group, .toggle-scheme, .toggle-provider').forEach(cb=> cb.addEventListener('change', applyToggles));
+        // Initialize based on defaults
+        applyToggles();
+
+        // --- Purge helpers ---
+        function makePurgeCurl(){
+            const prov = (document.getElementById('purgeProvider').value||'').toLowerCase();
+            const token = document.getElementById('purgeToken').value||'';
+            const url = document.getElementById('purgeUrl').value||'';
+            let cmd = '# Fill API token and run in your terminal\n';
+            if (prov==='cloudflare'){
+                cmd += `curl -X POST 'https://api.cloudflare.com/client/v4/zones/<zone_id>/purge_cache' \\\n  -H 'Authorization: Bearer ${token}' -H 'Content-Type: application/json' \\\n  --data '{"files":["${url}"]}'`;
+            } else if (prov==='arvan'){
+                cmd += `curl -X POST 'https://napi.arvancloud.ir/cdn/4.0/domains/<domain>/caching/purge' \\\n  -H 'Authorization: ${token}' -H 'Content-Type: application/json' \\\n  --data '{"purge":"individual","purge_urls":["${url}"]}'`;
+            } else {
+                cmd += `curl -X POST 'https://api.vergecloud.example/purge' \\
+  -H 'Authorization: Bearer ${token}' -H 'Content-Type: application/json' \\
+  --data '{"files":["${url}"]}'`;
+            }
+            document.getElementById('purgeCmd').textContent = cmd;
+        }
+        document.getElementById('makePurge').addEventListener('click', makePurgeCurl);
+        document.getElementById('copyPurge').addEventListener('click', ()=>{
+            const t = document.getElementById('purgeCmd').textContent; if (!t) return; navigator.clipboard.writeText(t);
+        });
+
+        async function runPurge(){
+            const prov = (document.getElementById('purgeProvider').value||'').toLowerCase();
+            const url = document.getElementById('purgeUrl').value||'';
+            const t0 = nowMs();
+            try{
+                const resp = await fetch('/mgmt/purge', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ provider: prov, url }) });
+                const json = await resp.json().catch(()=>({}));
+                appendRow(++round, url, 'PURGE', nowMs()-t0, resp.ok?'OK':'ERR', { cache: (json && json.result && json.result.status) ? String(json.result.status) : '' });
+            }catch(_){ appendRow(++round, url, 'PURGE', nowMs()-t0, 'ERR'); }
+        }
+        document.getElementById('runPurge').addEventListener('click', runPurge);
+
+        // --- Signed URL harness ---
+        async function hmacSHA256(keyBytes, msg){
+            const key = await crypto.subtle.importKey('raw', keyBytes, { name:'HMAC', hash:'SHA-256' }, false, ['sign']);
+            const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(msg));
+            return btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/, '');
+        }
+        async function generateSigned(){
+            const secret = document.getElementById('signSecret').value||'';
+            const base = document.getElementById('signBase').value||'';
+            const extra = document.getElementById('signExtra').value||'';
+            const expMin = Math.max(1, parseInt(document.getElementById('signExpiry').value||'10', 10));
+            const exp = Math.floor(Date.now()/1000) + (expMin*60);
+            const u = new URL(base);
+            if (extra){ const ps = new URLSearchParams(extra); ps.forEach((v,k)=> u.searchParams.set(k,v)); }
+            u.searchParams.set('exp', String(exp));
+            const toSign = `${u.pathname}?${u.searchParams.toString()}`;
+            const sig = await hmacSHA256(new TextEncoder().encode(secret), toSign);
+            u.searchParams.set('sig', sig);
+            const out = u.toString();
+            document.getElementById('signedOut').textContent = out;
+            return out;
+        }
+        document.getElementById('genSigned').addEventListener('click', generateSigned);
+        document.getElementById('copySigned').addEventListener('click', async ()=>{
+            const u = document.getElementById('signedOut').textContent; if (u) navigator.clipboard.writeText(u);
+        });
+        document.getElementById('openSigned').addEventListener('click', async ()=>{
+            const u = document.getElementById('signedOut').textContent || await generateSigned(); if (u) window.open(u, '_blank');
+        });
+    </script>
+</body>
+</html>
+
+

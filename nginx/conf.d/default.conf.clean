@@ -1,0 +1,697 @@
+# CDN-Optimized nginx Configuration
+# Based on Cloudflare and CDN provider best practices
+
+server {
+    listen 80;
+    server_name _;  # Accept any hostname (CDN-friendly)
+
+    # Access log
+    access_log /var/log/nginx/access.log;
+
+    # Get real visitor IP from CDN
+    set_real_ip_from 0.0.0.0/0;  # Accept from any IP (CDN)
+    real_ip_header X-Forwarded-For;
+    real_ip_recursive on;
+
+    # API Testing Endpoints - Proxy to Go backend
+    location ~ ^/api-test {
+        proxy_pass http://api:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization, X-API-Key" always;
+        if ($request_method = 'OPTIONS') { return 204; }
+    }
+    location ~ ^/tests/run {
+        proxy_pass http://api:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, POST, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization" always;
+        if ($request_method = "OPTIONS") { return 204; }
+    }
+    location = /purge {
+        proxy_pass http://api:8080/purge;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "POST, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization" always;
+        if ($request_method = "OPTIONS") { return 204; }
+    }
+
+    # Static file serving with CDN optimization
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+        try_files $uri $uri/ =404;
+        
+        # CDN-optimized cache headers
+        expires 1h;
+        add_header Cache-Control "public, max-age=3600, must-revalidate" always;
+        add_header X-Served-By "origin-server" always;
+        add_header X-Cache-Status "ORIGIN" always;
+        add_header X-Origin-Host "$host" always;
+        add_header X-Origin-Server-Addr "$server_addr" always;
+        add_header X-Origin-Server-Name "$hostname" always;
+        add_header X-Forwarded-Proto "$scheme" always;
+        
+        # CORS headers for CDN
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept" always;
+        # Expose CDN/cache headers to browsers (for cross-origin JS tests)
+        add_header Access-Control-Expose-Headers "Cache-Control, Age, ETag, Last-Modified, Content-Encoding, CF-Cache-Status, X-Cache, X-Cache-Status, X-Served-By, Server, Accept-Ranges, Timing-Allow-Origin, X-Geo-Country, X-Visitor-IP" always;
+        # Allow Resource Timing access for protocol/TTFB via JS
+        add_header Timing-Allow-Origin "*" always;
+        
+        # Security headers (CDN-friendly)
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        
+        # Handle OPTIONS requests for CORS
+        if ($request_method = 'OPTIONS') {
+            add_header Access-Control-Allow-Origin "*";
+            add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS";
+            add_header Access-Control-Max-Age 86400;
+            add_header Content-Length 0;
+            add_header Content-Type text/plain;
+            return 204;
+        }
+    }
+
+    # Dynamic cacheable time endpoint: /api/time?ttl=60
+    # Uses Cache-Control max-age from ttl param (defaults 0)
+    set $cache_ttl 0;
+    if ($arg_ttl ~ "^\\d+$") { set $cache_ttl $arg_ttl; }
+    location = /api/time {
+        default_type text/plain;
+        return 200 $time_iso8601"\n";
+        add_header Cache-Control "public, max-age=$cache_ttl" always;
+        add_header X-Cache-TTL "$cache_ttl" always;
+        add_header X-Geo-Country "$http_cf_ipcountry$http_x_country" always;
+        add_header X-Visitor-IP "$http_cf_connecting_ip$remote_addr" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Expose-Headers "Cache-Control, X-Cache-TTL, X-Geo-Country, X-Visitor-IP" always;
+    }
+
+    # Stale-while-revalidate / stale-if-error test
+    location = /api/stale {
+        default_type text/plain;
+        return 200 "ok\n";
+        add_header Cache-Control "public, max-age=30, stale-while-revalidate=60, stale-if-error=120" always;
+        add_header X-Served-By "stale-test" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Expose-Headers "Cache-Control" always;
+    }
+
+    # Redirect tests
+    location = /redirect/301 {
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept" always;
+        add_header Access-Control-Expose-Headers "Cache-Control, Age, X-Cache-Status, X-Served-By" always;
+        return 301 /probe.txt;
+    }
+    location = /redirect/302 {
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept" always;
+        add_header Access-Control-Expose-Headers "Cache-Control, Age, X-Cache-Status, X-Served-By" always;
+        return 302 /probe.txt;
+    }
+
+    # Hotlink protection example (allow same-site/CDN hosts)
+    location /protected/ {
+        valid_referers none blocked server_names test-verge-test.shop test20250316.ir 142.93.208.111;
+        if ($invalid_referer) { return 403; }
+        root /usr/share/nginx/html;
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+    }
+
+    # Advanced Caching Tests for VergeCloud
+    # Cache key variant tests - different content for different keys
+    location = /cache/key-variant {
+        default_type text/plain;
+        return 200 "variant-default-$time_iso8601\n";
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Cache-Key "default" always;
+    }
+
+    location ~ ^/cache/key-variant/(mobile|desktop) {
+        default_type text/plain;
+        return 200 "variant-$1-$time_iso8601\n";
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Cache-Key "$1" always;
+    }
+
+    # Query string cache tests
+    location = /cache/query-ignore {
+        default_type text/plain;
+        return 200 "ignore-query-$time_iso8601\n";
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Cache-Key "ignore-query" always;
+    }
+
+    location = /cache/query-include {
+        default_type text/plain;
+        return 200 "include-query-$args-$time_iso8601\n";
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Cache-Key "include-query-$args" always;
+    }
+
+    # Cookie-based cache tests
+    location = /cache/cookie-test {
+        default_type text/plain;
+        return 200 "cookie-$http_cookie-$time_iso8601\n";
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Cache-Key "cookie-$http_cookie" always;
+    }
+
+    # User-Agent based cache tests
+    location = /cache/ua-test {
+        default_type text/plain;
+        return 200 "ua-$http_user_agent-$time_iso8601\n";
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Cache-Key "ua-$http_user_agent" always;
+    }
+
+    # Cache bypass tests
+    location = /cache/bypass/nocache {
+        default_type text/plain;
+        return 200 "nocache-$time_iso8601\n";
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        add_header Pragma "no-cache" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept" always;
+        add_header Access-Control-Expose-Headers "Cache-Control, Age, X-Cache-Status, X-Served-By" always;
+    }
+
+    location = /cache/bypass/private {
+        default_type text/plain;
+        return 200 "private-$time_iso8601\n";
+        add_header Cache-Control "private, max-age=0" always;
+    }
+
+    # Dynamic content that should not be cached
+    location = /cache/dynamic {
+        default_type text/plain;
+        return 200 "dynamic-$msec-$time_iso8601\n";
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        add_header Pragma "no-cache" always;
+        add_header X-No-Cache "true" always;
+    }
+
+    # Security & WAF Testing for VergeCloud
+    # These endpoints simulate attacks that should be blocked by WAF
+
+    # SQL Injection attempts
+    location = /security/sql/union {
+        default_type text/plain;
+        return 200 "UNION SELECT username, password FROM users--\n";
+        add_header X-Test-Type "sql-injection" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept" always;
+        add_header Access-Control-Expose-Headers "Cache-Control, Age, X-Cache-Status, X-Served-By" always;
+    }
+
+    location = /security/sql/dump {
+        default_type text/plain;
+        return 200 "'; DROP TABLE users;--\n";
+        add_header X-Test-Type "sql-injection" always;
+    }
+
+    # XSS attempts
+    location = /security/xss/script {
+        default_type text/html;
+        return 200 "<script>alert('XSS')</script>\n";
+        add_header X-Test-Type "xss" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept" always;
+        add_header Access-Control-Expose-Headers "Cache-Control, Age, X-Cache-Status, X-Served-By" always;
+    }
+
+    location = /security/xss/img {
+        default_type text/html;
+        return 200 "<img src=x onerror=alert('XSS')>\n";
+        add_header X-Test-Type "xss" always;
+    }
+
+    # Path traversal attempts
+    location = /security/traversal/etc {
+        default_type text/plain;
+        return 200 "../../../etc/passwd\n";
+        add_header X-Test-Type "path-traversal" always;
+    }
+
+    location = /security/traversal/parent {
+        default_type text/plain;
+        return 200 "..%2F..%2F..%2Fetc%2Fpasswd\n";
+        add_header X-Test-Type "path-traversal" always;
+    }
+
+    # Command injection attempts
+    location = /security/cmd/exec {
+        default_type text/plain;
+        return 200 "; rm -rf / ;\n";
+        add_header X-Test-Type "command-injection" always;
+    }
+
+    # Bot detection tests (malicious User-Agents)
+    location = /security/bot/bad-ua {
+        default_type text/plain;
+        return 200 "Testing bad user agent\n";
+        add_header X-Test-Type "bot-detection" always;
+    }
+
+    # Rate limiting test endpoint
+    location = /security/rate-test {
+        default_type text/plain;
+        return 200 "rate-test-$time_iso8601\n";
+        add_header X-Test-Type "rate-limiting" always;
+    }
+
+    # Suspicious request patterns
+    location ~ ^/security/suspicious/(admin|wp-admin|phpmyadmin) {
+        default_type text/plain;
+        return 200 "admin-access-$time_iso8601\n";
+        add_header X-Test-Type "admin-access" always;
+    }
+
+    # Header injection attempts
+    location = /security/header/crlf {
+        default_type text/plain;
+        return 200 "test%0D%0ASet-Cookie:malicious=value\n";
+        add_header X-Test-Type "header-injection" always;
+    }
+
+    # Health check endpoint (CDN-friendly)
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type "text/plain" always;
+        add_header X-Served-By "origin-server" always;
+        add_header Cache-Control "no-cache" always;
+        add_header X-Origin-Host "$host" always;
+        add_header X-Origin-Server-Addr "$server_addr" always;
+        add_header X-Origin-Server-Name "$hostname" always;
+        add_header X-Forwarded-Proto "$scheme" always;
+    }
+
+    # Management API proxy (purge) - HTTP
+    location = /mgmt/purge {
+        proxy_pass http://api:8080/purge;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "POST, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization" always;
+        if ($request_method = 'OPTIONS') { return 204; }
+    }
+
+
+    # Static assets with long cache (CDN optimization)
+    location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        root /usr/share/nginx/html;
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        add_header X-Served-By "origin-server" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Timing-Allow-Origin "*" always;
+        add_header X-Origin-Host "$host" always;
+        add_header X-Origin-Server-Addr "$server_addr" always;
+        add_header X-Origin-Server-Name "$hostname" always;
+        add_header X-Forwarded-Proto "$scheme" always;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name _;  # Accept any hostname (CDN-friendly)
+
+    # Access log
+    access_log /var/log/nginx/access_ssl.log;
+
+           # SSL certificate (self-signed for testing)
+           ssl_certificate /etc/nginx/ssl/server.crt;
+           ssl_certificate_key /etc/nginx/ssl/server.key;
+
+    # CDN-optimized SSL settings
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_ciphers ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1h;
+
+    # Get real visitor IP from CDN
+    set_real_ip_from 0.0.0.0/0;  # Accept from any IP (CDN)
+    real_ip_header X-Forwarded-For;
+    real_ip_recursive on;
+    # API Testing Endpoints - Proxy to Go backend (HTTPS)
+    location ~ ^/api-test {
+        proxy_pass http://api:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization, X-API-Key" always;
+        if ($request_method = 'OPTIONS') { return 204; }
+    }
+
+    # Direct API endpoints - HTTPS
+    location = /purge {
+        proxy_pass http://api:8080/purge;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "POST, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization" always;
+        if ($request_method = 'OPTIONS') { return 204; }
+    }
+
+    location ~ ^/tests/run {
+        proxy_pass http://api:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, POST, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization" always;
+        if ($request_method = 'OPTIONS') { return 204; }
+    }
+
+    # Static file serving with CDN optimization
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+        try_files $uri $uri/ =404;
+
+        # CDN-optimized cache headers
+        expires 1h;
+        add_header Cache-Control "public, max-age=3600, must-revalidate" always;
+        add_header X-Served-By "origin-server-ssl" always;
+        add_header X-Cache-Status "ORIGIN-SSL" always;
+        add_header X-Origin-Host "$host" always;
+        add_header X-Origin-Server-Addr "$server_addr" always;
+        add_header X-Origin-Server-Name "$hostname" always;
+        add_header X-Forwarded-Proto "$scheme" always;
+        
+        # CORS headers for CDN
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept" always;
+        # Expose CDN/cache headers to browsers (for cross-origin JS tests)
+        add_header Access-Control-Expose-Headers "Cache-Control, Age, ETag, Last-Modified, Content-Encoding, CF-Cache-Status, X-Cache, X-Cache-Status, X-Served-By, Server, Accept-Ranges, Timing-Allow-Origin, X-Geo-Country, X-Visitor-IP" always;
+        # Allow Resource Timing access for protocol/TTFB via JS
+        add_header Timing-Allow-Origin "*" always;
+        
+        # Security headers (CDN-friendly)
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        
+        # Handle OPTIONS requests for CORS
+        if ($request_method = 'OPTIONS') {
+            add_header Access-Control-Allow-Origin "*";
+            add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS";
+            add_header Access-Control-Max-Age 86400;
+            add_header Content-Length 0;
+            add_header Content-Type text/plain;
+            return 204;
+        }
+    }
+
+    # Dynamic cacheable time endpoint: /api/time?ttl=60
+    set $cache_ttl 0;
+    if ($arg_ttl ~ "^\\d+$") { set $cache_ttl $arg_ttl; }
+    location = /api/time {
+        default_type text/plain;
+        return 200 $time_iso8601"\n";
+        add_header Cache-Control "public, max-age=$cache_ttl" always;
+        add_header X-Cache-TTL "$cache_ttl" always;
+        add_header X-Geo-Country "$http_cf_ipcountry$http_x_country" always;
+        add_header X-Visitor-IP "$http_cf_connecting_ip$remote_addr" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Expose-Headers "Cache-Control, X-Cache-TTL, X-Geo-Country, X-Visitor-IP" always;
+    }
+
+    location = /api/stale {
+        default_type text/plain;
+        return 200 "ok\n";
+        add_header Cache-Control "public, max-age=30, stale-while-revalidate=60, stale-if-error=120" always;
+        add_header X-Served-By "stale-test" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Expose-Headers "Cache-Control" always;
+    }
+
+    # Redirect tests (SSL)
+    location = /redirect/301 {
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept" always;
+        add_header Access-Control-Expose-Headers "Cache-Control, Age, X-Cache-Status, X-Served-By" always;
+        return 301 /probe.txt;
+    }
+    location = /redirect/302 {
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept" always;
+        add_header Access-Control-Expose-Headers "Cache-Control, Age, X-Cache-Status, X-Served-By" always;
+        return 302 /probe.txt;
+    }
+
+    # Hotlink protection example (SSL)
+    location /protected/ {
+        valid_referers none blocked server_names test-verge-test.shop test20250316.ir 142.93.208.111;
+        if ($invalid_referer) { return 403; }
+        root /usr/share/nginx/html;
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+    }
+
+    # Health check endpoint (CDN-friendly)
+    location /health {
+        access_log off;
+        return 200 "healthy-ssl\n";
+        add_header Content-Type "text/plain" always;
+        add_header X-Served-By "origin-server-ssl" always;
+        add_header Cache-Control "no-cache" always;
+        add_header X-Origin-Host "$host" always;
+        add_header X-Origin-Server-Addr "$server_addr" always;
+        add_header X-Origin-Server-Name "$hostname" always;
+        add_header X-Forwarded-Proto "$scheme" always;
+    }
+
+    # Management API proxy (purge) - HTTPS
+    location = /mgmt/purge {
+        proxy_pass http://api:8080/purge;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "POST, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization" always;
+        if ($request_method = 'OPTIONS') { return 204; }
+    }
+
+    # Direct API endpoints - HTTPS
+    location = /purge {
+        proxy_pass http://api:8080/purge;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "POST, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization" always;
+        if ($request_method = 'OPTIONS') { return 204; }
+    }
+
+    location ~ ^/tests/run {
+        proxy_pass http://api:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, POST, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization" always;
+        if ($request_method = 'OPTIONS') { return 204; }
+    }
+
+    # Static assets with long cache (CDN optimization)
+    location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        root /usr/share/nginx/html;
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        add_header X-Served-By "origin-server-ssl" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Timing-Allow-Origin "*" always;
+        add_header X-Origin-Host "$host" always;
+        add_header X-Origin-Server-Addr "$server_addr" always;
+        add_header X-Origin-Server-Name "$hostname" always;
+        add_header X-Forwarded-Proto "$scheme" always;
+    }
+
+    # Advanced Caching Tests for VergeCloud (HTTPS)
+    # Cache key variant tests - different content for different keys
+    location = /cache/key-variant {
+        default_type text/plain;
+        return 200 "variant-default-ssl-$time_iso8601\n";
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Cache-Key "default" always;
+    }
+
+    location ~ ^/cache/key-variant/(mobile|desktop) {
+        default_type text/plain;
+        return 200 "variant-$1-ssl-$time_iso8601\n";
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Cache-Key "$1" always;
+    }
+
+    # Query string cache tests (HTTPS)
+    location = /cache/query-ignore {
+        default_type text/plain;
+        return 200 "ignore-query-ssl-$time_iso8601\n";
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Cache-Key "ignore-query" always;
+    }
+
+    location = /cache/query-include {
+        default_type text/plain;
+        return 200 "include-query-$args-ssl-$time_iso8601\n";
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Cache-Key "include-query-$args" always;
+    }
+
+    # Cookie-based cache tests (HTTPS)
+    location = /cache/cookie-test {
+        default_type text/plain;
+        return 200 "cookie-$http_cookie-ssl-$time_iso8601\n";
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Cache-Key "cookie-$http_cookie" always;
+    }
+
+    # User-Agent based cache tests (HTTPS)
+    location = /cache/ua-test {
+        default_type text/plain;
+        return 200 "ua-$http_user_agent-ssl-$time_iso8601\n";
+        add_header Cache-Control "public, max-age=300" always;
+        add_header X-Cache-Key "ua-$http_user_agent" always;
+    }
+
+    # Cache bypass tests (HTTPS)
+    location = /cache/bypass/nocache {
+        default_type text/plain;
+        return 200 "nocache-ssl-$time_iso8601\n";
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        add_header Pragma "no-cache" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept" always;
+        add_header Access-Control-Expose-Headers "Cache-Control, Age, X-Cache-Status, X-Served-By" always;
+    }
+
+    location = /cache/bypass/private {
+        default_type text/plain;
+        return 200 "private-ssl-$time_iso8601\n";
+        add_header Cache-Control "private, max-age=0" always;
+    }
+
+    # Dynamic content that should not be cached (HTTPS)
+    location = /cache/dynamic {
+        default_type text/plain;
+        return 200 "dynamic-ssl-$msec-$time_iso8601\n";
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        add_header Pragma "no-cache" always;
+        add_header X-No-Cache "true" always;
+    }
+
+    # Security & WAF Testing for VergeCloud (HTTPS)
+    # SQL Injection attempts
+    location = /security/sql/union {
+        default_type text/plain;
+        return 200 "UNION SELECT username, password FROM users-- (SSL)\n";
+        add_header X-Test-Type "sql-injection" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept" always;
+        add_header Access-Control-Expose-Headers "Cache-Control, Age, X-Cache-Status, X-Served-By" always;
+    }
+
+    location = /security/sql/dump {
+        default_type text/plain;
+        return 200 "'; DROP TABLE users;-- (SSL)\n";
+        add_header X-Test-Type "sql-injection" always;
+    }
+
+    # XSS attempts
+    location = /security/xss/script {
+        default_type text/html;
+        return 200 "<script>alert('XSS-SSL')</script>\n";
+        add_header X-Test-Type "xss" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept" always;
+        add_header Access-Control-Expose-Headers "Cache-Control, Age, X-Cache-Status, X-Served-By" always;
+    }
+
+    location = /security/xss/img {
+        default_type text/html;
+        return 200 "<img src=x onerror=alert('XSS-SSL')>\n";
+        add_header X-Test-Type "xss" always;
+    }
+
+    # Path traversal attempts
+    location = /security/traversal/etc {
+        default_type text/plain;
+        return 200 "../../../etc/passwd (SSL)\n";
+        add_header X-Test-Type "path-traversal" always;
+    }
+
+    location = /security/traversal/parent {
+        default_type text/plain;
+        return 200 "..%2F..%2F..%2Fetc%2Fpasswd (SSL)\n";
+        add_header X-Test-Type "path-traversal" always;
+    }
+
+    # Command injection attempts
+    location = /security/cmd/exec {
+        default_type text/plain;
+        return 200 "; rm -rf / ; (SSL)\n";
+        add_header X-Test-Type "command-injection" always;
+    }
+
+    # Bot detection tests
+    location = /security/bot/bad-ua {
+        default_type text/plain;
+        return 200 "Testing bad user agent (SSL)\n";
+        add_header X-Test-Type "bot-detection" always;
+    }
+
+    # Rate limiting test endpoint
+    location = /security/rate-test {
+        default_type text/plain;
+        return 200 "rate-test-ssl-$time_iso8601\n";
+        add_header X-Test-Type "rate-limiting" always;
+    }
+
+    # Suspicious request patterns
+    location ~ ^/security/suspicious/(admin|wp-admin|phpmyadmin) {
+        default_type text/plain;
+        return 200 "admin-access-ssl-$time_iso8601\n";
+        add_header X-Test-Type "admin-access" always;
+    }
+
+    # Header injection attempts
+    location = /security/header/crlf {
+        default_type text/plain;
+        return 200 "test%0D%0ASet-Cookie:malicious=value (SSL)\n";
+        add_header X-Test-Type "header-injection" always;
+    }
+}
